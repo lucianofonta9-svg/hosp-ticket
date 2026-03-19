@@ -22,3 +22,6 @@ Una aplicación para el registro y seguimiento de incidentes técnicos en el hos
 3. Configurar el archivo `.env` con la URL de PostgreSQL.
 4. Ejecutar `npx prisma migrate dev`.
 5. Iniciar con `npm run dev`.
+
+
+
