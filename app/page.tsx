@@ -12,6 +12,8 @@ export default function Home() {
   const [categoria, setCategoria] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [esResolucionInmediata, setEsResolucionInmediata] = useState(false);
+  const [esGuardia, setEsGuardia] = useState(false);
+
   
 //Funcion del boton 
   const manejarGuardado = async () => {
@@ -20,7 +22,8 @@ export default function Home() {
         interno,
         categoria,
         descripcion,
-        esResolucionInmediata
+        esResolucionInmediata,
+        esGuardia
       });
 
       if (res.success) {
@@ -124,6 +127,19 @@ export default function Home() {
           />
         </div>
 
+        <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
+          <input 
+            type="checkbox" 
+            id="guardia"
+            checked={esGuardia}
+            onChange={(e) => setEsGuardia(e.target.checked)}
+            className="w-5 h-5 accent-red-600"
+          />
+          <label htmlFor="guardia" className="text-red-600 cursor-pointer">
+            ¿Es un ticket de guardia?
+          </label>
+        </div>
+
 
         <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
           <input 
@@ -138,14 +154,13 @@ export default function Home() {
           </label>
         </div>
 
-          
-        
         {/* Mensaje dinámico según el checkbox */}
         <p className="text-xs text-gray-500 mt-2 italic">
           {esResolucionInmediata 
             ? "✓ El ticket se guardará como finalizado." 
             : "⏱ Se iniciará un contador de tiempo al registrar."}
         </p>
+
 
         <button 
   onClick={async () => {
@@ -155,7 +170,8 @@ export default function Home() {
       interno,
       categoria,
       descripcion,
-      esResolucionInmediata
+      esResolucionInmediata,
+      esGuardia: esGuardia
     });
 
     // 2. Respuesta visual para el usuario

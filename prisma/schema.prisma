@@ -18,4 +18,5 @@ model Ticket {
   tecnico         String   @default("Luciano Fontanarrosa")
   estado          String   @default("EN_PROCESO") 
   ubicacion       String   @default("Hospital Rafaela")
+  es_guardia      Boolean  @default(false) 
 }

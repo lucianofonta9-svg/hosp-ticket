@@ -1,6 +1,7 @@
 "use server"; // Indica que esto solo corre en el servidor (seguridad)
 
 import { PrismaClient } from '@prisma/client';
+import { revalidatePath } from 'next/cache';
 
 const prisma = new PrismaClient();
 
@@ -10,6 +11,7 @@ export async function registrarTicket(datos: {
   categoria: string;
   descripcion: string;
   esResolucionInmediata: boolean;
+  esGuardia: boolean;
 }) {
   try {
     const nuevoTicket = await prisma.ticket.create({
@@ -18,6 +20,7 @@ export async function registrarTicket(datos: {
         interno: datos.interno,
         categoria: datos.categoria,
         descripcion: datos.descripcion,
+        es_guardia: datos.esGuardia,
         // Si el checkbox está marcado, el estado es RESUELTO
         estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
         // Si ya está resuelto, grabamos la fecha de cierre ahora mismo
@@ -32,6 +35,43 @@ export async function registrarTicket(datos: {
     return { success: true };
   } catch (error) {
     console.error("Error al guardar en BD:", error);
+    return { success: false };
+  }
+}
+
+export async function obtenerTicketsPendientes() {
+  try {
+    const tickets = await prisma.ticket.findMany({
+      where: {
+        estado: "EN_PROCESO", // Solo traemos los que no se cerraron
+      },
+      orderBy: {
+        fecha_creacion: 'asc', // El más viejo primero (el más urgente)
+      },
+    });
+    return tickets;
+  } catch (error) {
+    console.error("Error al obtener tickets:", error);
+    return [];
+  }
+}
+
+export async function finalizarTicket(id: number) {
+  try {
+    await prisma.ticket.update({
+      where: { id: id },
+      data: {
+        estado: "RESUELTO",
+        fecha_cierre: new Date(),
+      },
+    });
+
+    // Esto hace que el ticket desaparezca de la lista /tickets automáticamente
+    revalidatePath('/tickets');
+    
+    return { success: true };
+  } catch (error) {
+    console.error("Error al finalizar ticket:", error);
     return { success: false };
   }
 }
