@@ -75,3 +75,22 @@ export async function finalizarTicket(id: number) {
     return { success: false };
   }
 }
+
+export async function obtenerHistorialTickets() {
+  try {
+    const tickets = await prisma.ticket.findMany({
+      where: { estado: "RESUELTO" },
+      orderBy: { fecha_cierre: 'desc' },
+    });
+
+    // Convertimos las fechas a string para que el Cliente las entienda
+    return tickets.map(t => ({
+      ...t,
+      fecha_creacion: t.fecha_creacion.toISOString(),
+      fecha_cierre: t.fecha_cierre ? t.fecha_cierre.toISOString() : null,
+    }));
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+}

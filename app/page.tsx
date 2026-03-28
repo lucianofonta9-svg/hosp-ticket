@@ -27,14 +27,14 @@ export default function Home() {
       });
 
       if (res.success) {
-        alert("¡Ticket guardado correctamente!");
+        alert("Ticket guardado correctamente");
         // Limpiamos los campos para el próximo
         setDescripcion("");
         setSectorSeleccionado("");
         setInterno("");
         setCategoria("");
       } else {
-        alert("Error al guardar. Revisá la terminal.");
+        alert("Error al guardar.");
       }
     };
   // Función mágica: se ejecuta al cambiar el sector
