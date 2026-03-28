@@ -6,9 +6,9 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex justify-between items-center h-16">
           {/* Lado Izquierdo: Logo */}
-          <Link href="/" className="flex items-center gap-0.5 group">
+          <Link href="/" className="flex items-center gap-1 group">
             <span className="font-bold tracking-tight text-lg">HOSP</span>
-            <div className="bg-blue-600 px-0.5 py-0.5 rounded-lg group-hover:bg-blue-500 transition-colors text-white">
+            <div className="bg-blue-100 px-1 py-0.5 rounded-lg group-hover:bg-blue-300 transition-colors text-slate-900">
               <span className="font-black text-lg">TICKET</span>
             </div>
           </Link>
@@ -16,15 +16,15 @@ export default function Navbar() {
           {/* Lado Derecho: Links */}
           <div className="flex gap-6 items-center">
 
-            <Link href="/tickets" className="text-sm font-medium hover:text-blue-400 transition-colors">
+            <Link href="/tickets" className="text-m font-medium hover:text-blue-300 transition-colors">
               Pendientes
             </Link>
 
-            <Link href="/historial" className="text-sm font-medium hover:text-blue-400 transition-colors">
+            <Link href="/historial" className="text-m font-medium hover:text-blue-300 transition-colors">
               Historial
             </Link>
 
-            <Link href="/" className="text-sm font-medium hover:text-blue-400 transition-colors">
+            <Link href="/" className="text-m font-medium hover:text-blue-300 transition-colors">
               Nuevo Ticket
             </Link>
 
