@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from 'react';
-import { DATOS_SECTORES } from '../constants/sectores';
-import { CATEGORIAS_PROBLEMAS } from '../constants/problemas';
+import { DATOS_SECTORES } from '../../constants/sectores';
+import { CATEGORIAS_PROBLEMAS } from '../../constants/problemas';
 import { registrarTicket } from '../actions';
 
-export default function Home() {
+export default function NuevoTicket() {
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [sectorSeleccionado, setSectorSeleccionado] = useState("");
   const [interno, setInterno] = useState("");

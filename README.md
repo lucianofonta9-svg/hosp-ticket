@@ -11,10 +11,11 @@ Una aplicación para el registro y seguimiento de incidentes técnicos en el hos
 * **Lenguaje:** TypeScript
 
 ## Funcionalidades
-- [x] Registro de tickets con autocompletado de internos por sector.
-- [x] Clasificación por categorías (Hardware, Software, Redes, etc.).
-- [x] Diferenciación entre resolución inmediata y tickets en proceso.
-- [ ] Visualización de tickets pendientes con contador de tiempo real (En desarrollo).
+-  Registro de tickets con autocompletado de internos por sector.
+-  Clasificación por categorías.
+-  Diferenciación entre resolución inmediata y tickets en proceso.
+-  Visualización de tickets pendientes con contador de tiempo real.
+-  Visualización de historial de tickets resueltos. 
 
 ## Configuración Local
 1. Clonar el repositorio.

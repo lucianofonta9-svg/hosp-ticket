@@ -1,8 +1,8 @@
-import { obtenerTicketsPendientes, finalizarTicket } from './actions';
-import Timer from './timer';
-import Link from 'next/link';
+import { obtenerTicketsPendientes, finalizarTicket } from '../actions';
+import Timer from '../componentes/Timer';
 
-export default async function TicketsPage() {
+
+export default async function Home() {
   const tickets = await obtenerTicketsPendientes();
 
   return (
