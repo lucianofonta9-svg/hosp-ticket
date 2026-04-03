@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { obtenerHistorialTickets } from '../actions';
-import Link from 'next/link';
+
 
 export default function HistorialPage() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -29,6 +29,11 @@ export default function HistorialPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-8 text-gray-800">
+
+      <div className="flex justify-center items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Historial de Tickets</h1>
+      </div>
+
       <div className="max-w-5xl mx-auto">
 
         <input 
@@ -40,7 +45,7 @@ export default function HistorialPage() {
         />
 
         <div className="bg-white shadow rounded-lg overflow-hidden border border-gray-200">
-          {/* Clave: table-fixed y anchos definidos en el colgroup */}
+          {/* table-fixed y anchos definidos en el colgroup */}
           <table className="w-full text-left border-collapse table-fixed">
             <colgroup>
               <col className="w-40" /> 

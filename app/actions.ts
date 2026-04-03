@@ -2,6 +2,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 const prisma = new PrismaClient();
 
@@ -92,5 +93,29 @@ export async function obtenerHistorialTickets() {
   } catch (error) {
     console.error(error);
     return [];
+  }
+}
+
+// Para buscar un ticket por ID (el formulario lo necesita para rellenarse)
+export async function obtenerTicketPorId(id: number) {
+  return await prisma.ticket.findUnique({ where: { id } });
+}
+
+// Para guardar los cambios
+export async function actualizarTicket(id: number, data: any) {
+  try {
+    await prisma.ticket.update({
+      where: { id },
+      data: {
+        sector: data.sector,
+        interno: data.interno,
+        categoria: data.categoria,
+        descripcion: data.descripcion,
+        es_guardia: data.esGuardia
+      }
+    });
+    return { success: true };
+  } catch (e) {
+    return { success: false };
   }
 }

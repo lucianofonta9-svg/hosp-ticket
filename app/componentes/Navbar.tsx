@@ -10,7 +10,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex justify-between items-center h-16">
           
-          {/* Lado Izquierdo: Tu Logo con estilo */}
+          {/* Lado Izquierdo: Logo */}
           <Link href="/" className="flex items-center gap-1 group">
             <span className="font-bold tracking-tight text-lg">HOSP</span>
             <div className="bg-blue-100 px-1 py-0.5 rounded-lg group-hover:bg-blue-300 transition-colors text-slate-900">
@@ -18,15 +18,16 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Lado Derecho: Rutas actualizadas al nuevo orden */}
+          {/* Lado Derecho: Rutas  */}
           <div className="flex gap-6 items-center">
-            {/* "/" ahora es Pendientes */}
+            {/* Pendientes */}
             <Link 
               href="/" 
               className={`text-m font-medium transition-colors ${pathname === '/' ? 'text-blue-300' : 'hover:text-blue-300'}`}
             >
               Pendientes
             </Link>
+            {/* Historial */}
 
             <Link 
               href="/historial" 
@@ -35,7 +36,7 @@ export default function Navbar() {
               Historial
             </Link>
 
-            {/* "/nuevo" ahora es el formulario */}
+            {/* formulario */}
             <Link 
               href="/nuevo" 
               className={`text-m font-medium transition-colors ${pathname === '/nuevo' ? 'text-blue-300' : 'hover:text-blue-300'}`}
