@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Timer from './Timer';
 import Link from 'next/link';
+import { eliminarTicket } from '../actions'; 
 
 export default function TicketCard({ ticket, finalizarAction }: { ticket: any, finalizarAction: any }) {
   const [expandido, setExpandido] = useState(false);
@@ -9,8 +10,16 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
   // Verifica si el texto es largo (más de 100 caracteres)
   const esLargo = ticket.descripcion.length > 100;
 
+  // Función para manejar la eliminación con confirmación
+  const confirmarEliminar = async () => {
+    const confirmar = window.confirm("¿Estás seguro de que deseas eliminar este ticket permanentemente?");
+    if (confirmar) {
+      await eliminarTicket(ticket.id);
+    }
+  };
+
   return (
-    <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10 bg-white transition-all ${
+    <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10px bg-white transition-all ${
       ticket.es_guardia ? 'border-red-600' : 'border-blue-500'
     } ${expandido ? 'h-auto min-h-64' : 'h-64'}`}>
       
@@ -45,7 +54,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
       </div>
 
       <div className="mt-4 flex items-center justify-between border-t pt-4 border-gray-100">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Botón Editar */}
           <Link 
             href={`/nuevo?edit=${ticket.id}`}
@@ -57,7 +66,18 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
             </svg>
           </Link>
 
-          <div className="flex flex-col">
+          {/* Botón Eliminar */}
+          <button 
+            onClick={confirmarEliminar}
+            className="bg-slate-100 hover:bg-red-100 text-slate-500 hover:text-red-600 p-2 rounded-xl transition-colors shadow-sm border border-slate-200"
+            title="Eliminar ticket"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9l-.34 9m-4.74 0l-.34-9m9.27-3.91L18.74 21a2 2 0 0 1-2 2H7.26a2 2 0 0 1-2-2L5.26 5.09m4.13-3.09h4.22a2 2 0 0 1 2 2v.92m-9.22 0h11.22" />
+            </svg>
+          </button>
+
+          <div className="flex flex-col ml-1">
             <span className="text-[10px] text-gray-400 font-bold uppercase leading-none mb-1">Tiempo</span>
             <div className="text-blue-700 font-mono font-bold text-sm leading-none">
               <Timer inicio={ticket.fecha_creacion} />

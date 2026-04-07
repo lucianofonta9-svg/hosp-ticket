@@ -1,8 +1,7 @@
-"use server"; // Indica que esto solo corre en el servidor (seguridad)
+"use server";
 
 import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 
 const prisma = new PrismaClient();
 
@@ -15,44 +14,34 @@ export async function registrarTicket(datos: {
   esGuardia: boolean;
 }) {
   try {
-    const nuevoTicket = await prisma.ticket.create({
+    await prisma.ticket.create({
       data: {
         sector: datos.sector,
         interno: datos.interno,
         categoria: datos.categoria,
         descripcion: datos.descripcion,
         es_guardia: datos.esGuardia,
-        // Si el checkbox está marcado, el estado es RESUELTO
         estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
-        // Si ya está resuelto, grabamos la fecha de cierre ahora mismo
         fecha_cierre: datos.esResolucionInmediata ? new Date() : null,
-        // Datos fijos por ahora (luego vendrán del Login)
         tecnico: "Luciano Fontanarrosa",
         ubicacion: "Hospital Rafaela",
       },
     });
-
-    console.log("Ticket guardado con ID:", nuevoTicket.id);
+    revalidatePath('/');
     return { success: true };
   } catch (error) {
-    console.error("Error al guardar en BD:", error);
+    console.error(error);
     return { success: false };
   }
 }
 
 export async function obtenerTicketsPendientes() {
   try {
-    const tickets = await prisma.ticket.findMany({
-      where: {
-        estado: "EN_PROCESO", // Solo traemos los que no se cerraron
-      },
-      orderBy: {
-        fecha_creacion: 'asc', // El más viejo primero (el más urgente)
-      },
+    return await prisma.ticket.findMany({
+      where: { estado: "EN_PROCESO" },
+      orderBy: { fecha_creacion: 'asc' },
     });
-    return tickets;
   } catch (error) {
-    console.error("Error al obtener tickets:", error);
     return [];
   }
 }
@@ -60,19 +49,13 @@ export async function obtenerTicketsPendientes() {
 export async function finalizarTicket(id: number) {
   try {
     await prisma.ticket.update({
-      where: { id: id },
-      data: {
-        estado: "RESUELTO",
-        fecha_cierre: new Date(),
-      },
+      where: { id },
+      data: { estado: "RESUELTO", fecha_cierre: new Date() },
     });
-
-    // Esto hace que el ticket desaparezca de la lista /tickets automáticamente
-    revalidatePath('/tickets');
-    
+    revalidatePath('/');
+    revalidatePath('/historial');
     return { success: true };
   } catch (error) {
-    console.error("Error al finalizar ticket:", error);
     return { success: false };
   }
 }
@@ -83,25 +66,25 @@ export async function obtenerHistorialTickets() {
       where: { estado: "RESUELTO" },
       orderBy: { fecha_cierre: 'desc' },
     });
-
-    // Convertimos las fechas a string para que el Cliente las entienda
     return tickets.map(t => ({
       ...t,
       fecha_creacion: t.fecha_creacion.toISOString(),
       fecha_cierre: t.fecha_cierre ? t.fecha_cierre.toISOString() : null,
     }));
   } catch (error) {
-    console.error(error);
     return [];
   }
 }
 
-// Para buscar un ticket por ID (el formulario lo necesita para rellenarse)
 export async function obtenerTicketPorId(id: number) {
   return await prisma.ticket.findUnique({ where: { id } });
 }
 
-// Para guardar los cambios
+// CRUD COMPLETO 
+
+//Actualiza datos del ticket exceptuando el estado y la fecha, 
+// pensado para corrección de errores al cargar tickets.
+
 export async function actualizarTicket(id: number, data: any) {
   try {
     await prisma.ticket.update({
@@ -114,8 +97,45 @@ export async function actualizarTicket(id: number, data: any) {
         es_guardia: data.esGuardia
       }
     });
+    revalidatePath('/');
+    revalidatePath('/historial');
     return { success: true };
   } catch (e) {
+    return { success: false };
+  }
+}
+
+
+export async function eliminarTicket(id: number) {
+  try {
+    await prisma.ticket.delete({
+      where: { id }
+    });
+    revalidatePath('/');
+    revalidatePath('/historial');
+    return { success: true };
+  } catch (error) {
+    console.error("Error al eliminar:", error);
+    return { success: false };
+  }
+}
+
+// Cambia el estado de un ticket de "FINALIZADO" a "EN_PROCESO".
+
+export async function reabrirTicket(id: number) {
+  try {
+    await prisma.ticket.update({
+      where: { id },
+      data: {
+        estado: "EN_PROCESO",
+        fecha_cierre: null 
+      }
+    });
+    revalidatePath('/');
+    revalidatePath('/historial');
+    return { success: true };
+  } catch (error) {
+    console.error("Error al reabrir:", error);
     return { success: false };
   }
 }
