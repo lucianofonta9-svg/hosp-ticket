@@ -8,15 +8,16 @@ datasource db {
 }
 
 model Ticket {
-  id              Int      @id @default(autoincrement())
-  fecha_creacion  DateTime @default(now())
-  fecha_cierre    DateTime?
-  sector          String
-  interno         String
-  categoria       String
-  descripcion     String
-  tecnico         String   @default("Luciano Fontanarrosa")
-  estado          String   @default("EN_PROCESO") 
-  ubicacion       String   @default("Hospital Rafaela")
-  es_guardia      Boolean  @default(false) 
+  id               Int      @id @default(autoincrement())
+  sector           String
+  interno          String?
+  categoria        String
+  ubicacion        String   
+  usuario_solicita String 
+  descripcion      String
+  es_guardia       Boolean  @default(false)
+  estado           String   @default("EN_PROCESO") 
+  fecha_creacion   DateTime @default(now())
+  fecha_cierre     DateTime?
+  tecnico          String
 }

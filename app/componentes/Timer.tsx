@@ -1,23 +1,35 @@
 "use client";
 import { useState, useEffect } from 'react';
 
-export default function Timer({ inicio }: { inicio: Date }) {
+export default function Timer({ inicio, pausado = false }: { inicio: string | Date, pausado?: boolean }) {
   const [tiempo, setTiempo] = useState("");
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const ahora = new Date();
-      const diff = ahora.getTime() - new Date(inicio).getTime();
+    // Si está pausado, no ejecutamos el intervalo y mantenemos el valor actual
+    if (pausado) return;
+
+    const actualizar = () => {
+      // Validamos que 'inicio' sea una fecha válida para evitar errores de JS
+      const fechaInicio = new Date(inicio).getTime();
+      if (isNaN(fechaInicio)) {
+        setTiempo("--h --m --s");
+        return;
+      }
+
+      const diff = new Date().getTime() - fechaInicio;
+      const segundos = Math.floor(diff / 1000);
+      const h = Math.floor(segundos / 3600);
+      const m = Math.floor((segundos % 3600) / 60);
+      const s = segundos % 60;
       
-      const horas = Math.floor(diff / (1000 * 60 * 60));
-      const minutos = Math.floor((diff / (1000 * 60)) % 60);
-      const segundos = Math.floor((diff / 1000) % 60);
+      setTiempo(`${h}h ${m}m ${s}s`);
+    };
 
-      setTiempo(`${horas}h ${minutos}m ${segundos}s`);
-    }, 1000);
-
+    actualizar();
+    const interval = setInterval(actualizar, 1000);
+    
     return () => clearInterval(interval);
-  }, [inicio]);
+  }, [inicio, pausado]); // Si 'pausado' cambia, el efecto se reinicia o se detiene
 
-  return <span className="font-mono font-bold text-orange-600">{tiempo}</span>;
+  return <span>{tiempo || "0h 0m 0s"}</span>;
 }

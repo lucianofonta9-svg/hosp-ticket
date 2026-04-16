@@ -5,10 +5,13 @@ import { revalidatePath } from 'next/cache';
 
 const prisma = new PrismaClient();
 
+// Actualiza registrarTicket para incluir Ubicación y Usuario
 export async function registrarTicket(datos: {
   sector: string;
   interno: string;
   categoria: string;
+  ubicacion: string; // Nuevo
+  usuarioSolicita: string; // Nuevo
   descripcion: string;
   esResolucionInmediata: boolean;
   esGuardia: boolean;
@@ -19,12 +22,13 @@ export async function registrarTicket(datos: {
         sector: datos.sector,
         interno: datos.interno,
         categoria: datos.categoria,
+        ubicacion: datos.ubicacion,
+        usuario_solicita: datos.usuarioSolicita,
         descripcion: datos.descripcion,
         es_guardia: datos.esGuardia,
         estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
         fecha_cierre: datos.esResolucionInmediata ? new Date() : null,
         tecnico: "Luciano Fontanarrosa",
-        ubicacion: "Hospital Rafaela",
       },
     });
     revalidatePath('/');
@@ -38,10 +42,19 @@ export async function registrarTicket(datos: {
 export async function obtenerTicketsPendientes() {
   try {
     return await prisma.ticket.findMany({
-      where: { estado: "EN_PROCESO" },
-      orderBy: { fecha_creacion: 'asc' },
+      where: {
+        // Usamos 'in' para traer tickets que tengan cualquiera de los dos estados
+        estado: {
+          in: ["EN_PROCESO", "PAUSADO"]
+        }
+      },
+      orderBy: [
+        { estado: 'asc' }, // Esto pondría "EN_PROCESO" antes que "PAUSADO" alfabéticamente
+        { fecha_creacion: 'asc' }
+      ],
     });
   } catch (error) {
+    console.error("Error al obtener tickets:", error);
     return [];
   }
 }
@@ -82,7 +95,7 @@ export async function obtenerTicketPorId(id: number) {
 
 // CRUD COMPLETO 
 
-//Actualiza datos del ticket exceptuando el estado y la fecha, 
+//Actualiza datos del ticket exceptuando el estado, 
 // pensado para corrección de errores al cargar tickets.
 
 export async function actualizarTicket(id: number, data: any) {
@@ -93,6 +106,8 @@ export async function actualizarTicket(id: number, data: any) {
         sector: data.sector,
         interno: data.interno,
         categoria: data.categoria,
+        ubicacion: data.ubicacion,
+        usuario_solicita: data.usuarioSolicita, // <-- Agregalo aquí también
         descripcion: data.descripcion,
         es_guardia: data.esGuardia
       }
@@ -101,6 +116,7 @@ export async function actualizarTicket(id: number, data: any) {
     revalidatePath('/historial');
     return { success: true };
   } catch (e) {
+    console.error(e);
     return { success: false };
   }
 }
@@ -136,6 +152,19 @@ export async function reabrirTicket(id: number) {
     return { success: true };
   } catch (error) {
     console.error("Error al reabrir:", error);
+    return { success: false };
+  }
+}
+
+export async function cambiarEstadoTicket(id: number, nuevoEstado: "EN_PROCESO" | "PAUSADO") {
+  try {
+    await prisma.ticket.update({
+      where: { id },
+      data: { estado: nuevoEstado }
+    });
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
     return { success: false };
   }
 }

@@ -1,0 +1,15 @@
+export const UBICACIONES = [
+  "Hospital Dr. Jaime Ferré",
+  "Anexo Hospital Dr. Jaime Ferré",
+  "Centro de Salud 1",
+  "Centro de Salud 2",
+  "Centro de Salud 3",
+  "Centro de Salud 4",
+  "Centro de Salud 5",
+  "Centro de Salud 6",
+  "Centro de Salud 7",
+  "Centro de Salud 8",
+  "Centro de Salud 9",
+  "Centro de Salud 10",
+  "Centro de Salud 11",
+];

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { DATOS_SECTORES } from '../../constants/sectores';
 import { CATEGORIAS_PROBLEMAS } from '../../constants/problemas';
+import { UBICACIONES } from '../../constants/ubicaciones'; // Asegurate de tener este archivo
 import { registrarTicket, obtenerTicketPorId, actualizarTicket } from '../actions';
 
 export default function NuevoTicket() {
@@ -18,6 +19,8 @@ export default function NuevoTicket() {
   const [sectorSeleccionado, setSectorSeleccionado] = useState("");
   const [interno, setInterno] = useState("");
   const [categoria, setCategoria] = useState("");
+  const [ubicacion, setUbicacion] = useState(""); // NUEVO
+  const [usuarioSolicita, setUsuarioSolicita] = useState(""); // NUEVO
   const [descripcion, setDescripcion] = useState("");
   const [esResolucionInmediata, setEsResolucionInmediata] = useState(false);
   const [esGuardia, setEsGuardia] = useState(false);
@@ -28,13 +31,15 @@ export default function NuevoTicket() {
     setSectorSeleccionado("");
     setInterno("");
     setCategoria("");
+    setUbicacion(""); // NUEVO
+    setUsuarioSolicita(""); // NUEVO
     setDescripcion("");
     setEsGuardia(false);
     setEsResolucionInmediata(false);
     setFecha(new Date().toISOString().split('T')[0]);
   };
 
-  // Efecto principal: Carga datos si hay ID, o limpia si no lo hay
+  // Efecto principal: Carga datos si hay ID, sino limpia los campos
   useEffect(() => {
     if (editId) {
       setCargando(true);
@@ -43,13 +48,14 @@ export default function NuevoTicket() {
           setSectorSeleccionado(ticket.sector);
           setInterno(ticket.interno || "");
           setCategoria(ticket.categoria);
+          setUbicacion(ticket.ubicacion || ""); // NUEVO
+          setUsuarioSolicita(ticket.usuario_solicita || ""); // NUEVO
           setDescripcion(ticket.descripcion);
           setEsGuardia(ticket.es_guardia);
         }
         setCargando(false);
       });
     } else {
-      // Si el ID desaparece (clic en el Nav), reseteamos los campos
       limpiarFormulario();
     }
   }, [editId]);
@@ -65,6 +71,8 @@ export default function NuevoTicket() {
       sector: sectorSeleccionado,
       interno,
       categoria,
+      ubicacion, // NUEVO
+      usuarioSolicita, // NUEVO
       descripcion,
       esResolucionInmediata,
       esGuardia
@@ -90,12 +98,39 @@ export default function NuevoTicket() {
   return (
     <main className="p-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
       <h1 className="text-2xl font-black mb-6 text-slate-800 border-b pb-2 flex justify-center uppercase tracking-tighter">
-        {editId ? 'Editar Ticket 📋' : 'Crear Ticket 📋'}
+        {editId ? 'Editar Ticket  ✏️' : 'Crear Ticket 📋'}
       </h1>
 
       <div className="space-y-5 bg-white p-6 rounded-xl shadow-md border border-gray-200">
         
-        {/* FILA 1: FECHA Y TÉCNICO */}
+        {/* FILA 1: UBICACIÓN Y USUARIO SOLICITA (NUEVO) */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Ubicación</label>
+            <select 
+              value={ubicacion}
+              onChange={(e) => setUbicacion(e.target.value)}
+              className="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700"
+            >
+              <option value="">Seleccione lugar...</option>
+              {UBICACIONES.map(u => (
+                <option key={u} value={u}>{u}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Persona que solicita</label>
+            <input 
+              type="text" 
+              value={usuarioSolicita}
+              onChange={(e) => setUsuarioSolicita(e.target.value)}
+              placeholder="Nombre y apellido"
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+            />
+          </div>
+        </div>
+
+        {/* FILA 2: FECHA Y TÉCNICO */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Fecha</label>
@@ -112,7 +147,7 @@ export default function NuevoTicket() {
           </div>
         </div>
 
-        {/* FILA 2: SECTOR E INTERNO */}
+        {/* FILA 3: SECTOR E INTERNO */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Sector Origen</label>
@@ -139,7 +174,7 @@ export default function NuevoTicket() {
           </div>
         </div>
 
-        {/* FILA 3: CATEGORÍA */}
+        {/* FILA 4: CATEGORÍA */}
         <div>
           <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Categoría del Problema</label>
           <select 
@@ -152,7 +187,7 @@ export default function NuevoTicket() {
           </select>
         </div>
 
-        {/* FILA 4: DESCRIPCIÓN */}
+        {/* FILA 5: DESCRIPCIÓN */}
         <div>
           <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Descripción detallada</label>
           <textarea 
@@ -211,7 +246,7 @@ export default function NuevoTicket() {
                     esResolucionInmediata ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-700 hover:bg-blue-800'
                 }`}
             >
-                {editId ? '💾 Guardar Cambios' : esResolucionInmediata ? '🏁 Finalizar y Guardar' : '🚀 Registrar Ticket'}
+                {editId ? '💾 Guardar Cambios' : esResolucionInmediata ? '🏁 Finalizar y Guardar' : 'Crear'}
             </button>
         </div>
       </div>
