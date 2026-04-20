@@ -5,11 +5,11 @@ export default function Timer({ inicio, pausado = false }: { inicio: string | Da
   const [tiempo, setTiempo] = useState("");
 
   useEffect(() => {
-    // Si está pausado, no ejecutamos el intervalo y mantenemos el valor actual
+    // Si está pausado, se mantiene valor actual
     if (pausado) return;
 
     const actualizar = () => {
-      // Validamos que 'inicio' sea una fecha válida para evitar errores de JS
+      // Validación que fecha inicio sea una válida para evitar errores 
       const fechaInicio = new Date(inicio).getTime();
       if (isNaN(fechaInicio)) {
         setTiempo("--h --m --s");

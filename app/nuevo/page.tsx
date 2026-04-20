@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { DATOS_SECTORES } from '../../constants/sectores';
 import { CATEGORIAS_PROBLEMAS } from '../../constants/problemas';
-import { UBICACIONES } from '../../constants/ubicaciones'; // Asegurate de tener este archivo
+import { UBICACIONES } from '../../constants/ubicaciones'; 
 import { registrarTicket, obtenerTicketPorId, actualizarTicket } from '../actions';
 
 export default function NuevoTicket() {
@@ -19,8 +19,8 @@ export default function NuevoTicket() {
   const [sectorSeleccionado, setSectorSeleccionado] = useState("");
   const [interno, setInterno] = useState("");
   const [categoria, setCategoria] = useState("");
-  const [ubicacion, setUbicacion] = useState(""); // NUEVO
-  const [usuarioSolicita, setUsuarioSolicita] = useState(""); // NUEVO
+  const [ubicacion, setUbicacion] = useState(""); 
+  const [usuarioSolicita, setUsuarioSolicita] = useState(""); 
   const [descripcion, setDescripcion] = useState("");
   const [esResolucionInmediata, setEsResolucionInmediata] = useState(false);
   const [esGuardia, setEsGuardia] = useState(false);
@@ -31,8 +31,8 @@ export default function NuevoTicket() {
     setSectorSeleccionado("");
     setInterno("");
     setCategoria("");
-    setUbicacion(""); // NUEVO
-    setUsuarioSolicita(""); // NUEVO
+    setUbicacion(""); 
+    setUsuarioSolicita(""); 
     setDescripcion("");
     setEsGuardia(false);
     setEsResolucionInmediata(false);
@@ -48,8 +48,8 @@ export default function NuevoTicket() {
           setSectorSeleccionado(ticket.sector);
           setInterno(ticket.interno || "");
           setCategoria(ticket.categoria);
-          setUbicacion(ticket.ubicacion || ""); // NUEVO
-          setUsuarioSolicita(ticket.usuario_solicita || ""); // NUEVO
+          setUbicacion(ticket.ubicacion || ""); 
+          setUsuarioSolicita(ticket.usuario_solicita || ""); 
           setDescripcion(ticket.descripcion);
           setEsGuardia(ticket.es_guardia);
         }
@@ -71,8 +71,8 @@ export default function NuevoTicket() {
       sector: sectorSeleccionado,
       interno,
       categoria,
-      ubicacion, // NUEVO
-      usuarioSolicita, // NUEVO
+      ubicacion, 
+      usuarioSolicita, 
       descripcion,
       esResolucionInmediata,
       esGuardia
@@ -198,8 +198,11 @@ export default function NuevoTicket() {
           />
         </div>
 
-        {/* CHECKBOX GUARDIA */}
-        <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+
+        {/* Contenedor para centrar chexboxs */}
+        <div className="flex justify-evenly gap-2 w-full">
+              {/* CHECKBOX GUARDIA */}
+        <div className="flex items-center  gap-2 p-3 bg-red-50 border border-red-200 rounded-lg flex-1">
           <input 
             type="checkbox" 
             id="guardia"
@@ -208,25 +211,29 @@ export default function NuevoTicket() {
             className="w-5 h-5 accent-red-600 cursor-pointer"
           />
           <label htmlFor="guardia" className="text-red-600 font-bold cursor-pointer select-none">
-            ¿Es un ticket de guardia?
+            Ticket de Guardia
           </label>
         </div>
 
         {/* CHECKBOX RESOLUCIÓN INMEDIATA (SOLO SI NO ESTAMOS EDITANDO) */}
         {!editId && (
-          <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-200 flex-1">
             <input 
               type="checkbox" 
               id="resuelto"
               checked={esResolucionInmediata}
               onChange={(e) => setEsResolucionInmediata(e.target.checked)}
+              
               className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
             />
-            <label htmlFor="resuelto" className="ml-3 text-sm font-medium text-blue-800 select-none cursor-pointer">
-              ¿El problema ya fue resuelto? (Cierre inmediato)
+            <label htmlFor="resuelto" className="ml-3 font-bold text-blue-800 select-none cursor-pointer">
+              Cierre inmediato
             </label>
           </div>
-        )}
+        )}  
+          
+        </div>
+        
 
         {/* BOTONES DE ACCIÓN */}
         <div className="flex gap-3 pt-2">

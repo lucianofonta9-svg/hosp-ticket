@@ -5,13 +5,12 @@ import { revalidatePath } from 'next/cache';
 
 const prisma = new PrismaClient();
 
-// Actualiza registrarTicket para incluir Ubicación y Usuario
 export async function registrarTicket(datos: {
   sector: string;
   interno: string;
   categoria: string;
-  ubicacion: string; // Nuevo
-  usuarioSolicita: string; // Nuevo
+  ubicacion: string; 
+  usuarioSolicita: string; 
   descripcion: string;
   esResolucionInmediata: boolean;
   esGuardia: boolean;
@@ -43,7 +42,7 @@ export async function obtenerTicketsPendientes() {
   try {
     return await prisma.ticket.findMany({
       where: {
-        // Usamos 'in' para traer tickets que tengan cualquiera de los dos estados
+        // El 'in' se utiliza para traer tickets que tengan cualquiera de los dos estados
         estado: {
           in: ["EN_PROCESO", "PAUSADO"]
         }

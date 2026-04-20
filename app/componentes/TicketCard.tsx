@@ -123,7 +123,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           </div>
         </div>
 
-        {/* Solo mostramos el botón finalizar si NO está pausado */}
+        {/* Boton de finalizar se muestra cuando solo si el ticket no está en pausa */}
         {!esPausado && (
           <form action={finalizarAction}>
             <input type="hidden" name="id" value={ticket.id} />
