@@ -23,12 +23,12 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
   };
 
   return (
-    <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10px transition-all ${
+    <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10 transition-all ${
       esPausado ? 'bg-gray-100 border-gray-400 opacity-80' : 
       ticket.es_guardia ? 'bg-white border-red-600' : 'bg-white border-blue-500'
     } ${expandido ? 'h-auto min-h-64' : 'h-64'}`}>
       
-      <div>
+      <div className="w-full overflow-hidden">
         <div className="flex justify-between items-start mb-2">
           <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
             {ticket.ubicacion} {ticket.interno && `| Int: ${ticket.interno}`}
@@ -51,12 +51,11 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           {ticket.sector}
         </h2>
 
-        {/* Muestra quién solicita el ticket */}
         <p className={`text-[10px] font-bold uppercase mt-1 ${esPausado ? 'text-gray-400' : 'text-blue-600'}`}>
           Solicita: {ticket.usuario_solicita}
         </p>
         
-        <p className={`mt-2 text-sm leading-snug ${esPausado ? 'text-gray-400 italic' : 'text-gray-600 italic'} ${!expandido && 'line-clamp-2'}`}>
+        <p className={`mt-2 text-sm leading-snug wrap-break-word whitespace-normal ${esPausado ? 'text-gray-400 italic' : 'text-gray-600 italic'} ${!expandido && 'line-clamp-2'}`}>
           "{ticket.descripcion}"
         </p>
 
@@ -72,7 +71,6 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
 
       <div className="mt-4 flex items-center justify-between border-t pt-4 border-gray-100">
         <div className="flex items-center gap-2">
-          {/* Botón Editar */}
           <Link 
             href={`/nuevo?edit=${ticket.id}`}
             className="bg-slate-100 hover:bg-blue-100 text-slate-500 hover:text-blue-600 p-2 rounded-xl transition-colors shadow-sm border border-slate-200"
@@ -83,7 +81,6 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
             </svg>
           </Link>
 
-          {/* Botón Pausar/Reanudar */}
           <button 
             onClick={alternarPausa}
             className={`p-2 rounded-xl transition-colors shadow-sm border ${
@@ -99,12 +96,11 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
               </svg>
             ) : (
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                <path d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
               </svg>
             )}
           </button>
 
-          {/* Botón Eliminar */}
           <button 
             onClick={confirmarEliminar}
             className="bg-slate-100 hover:bg-red-100 text-slate-500 hover:text-red-600 p-2 rounded-xl transition-colors shadow-sm border border-slate-200"
@@ -123,7 +119,6 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           </div>
         </div>
 
-        {/* Boton de finalizar se muestra cuando solo si el ticket no está en pausa */}
         {!esPausado && (
           <form action={finalizarAction}>
             <input type="hidden" name="id" value={ticket.id} />

@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 export async function registrarTicket(datos: {
   sector: string;
   interno: string;
-  categoria: string;
+  categoryId: number;
   ubicacion: string; 
   usuarioSolicita: string; 
   descripcion: string;
@@ -20,7 +20,7 @@ export async function registrarTicket(datos: {
       data: {
         sector: datos.sector,
         interno: datos.interno,
-        categoria: datos.categoria,
+        categoryId: Number(datos.categoryId),
         ubicacion: datos.ubicacion,
         usuario_solicita: datos.usuarioSolicita,
         descripcion: datos.descripcion,
@@ -42,13 +42,12 @@ export async function obtenerTicketsPendientes() {
   try {
     return await prisma.ticket.findMany({
       where: {
-        // El 'in' se utiliza para traer tickets que tengan cualquiera de los dos estados
         estado: {
           in: ["EN_PROCESO", "PAUSADO"]
         }
       },
       orderBy: [
-        { estado: 'asc' }, // Esto pondría "EN_PROCESO" antes que "PAUSADO" alfabéticamente
+        { estado: 'asc' },
         { fecha_creacion: 'asc' }
       ],
     });
@@ -92,11 +91,6 @@ export async function obtenerTicketPorId(id: number) {
   return await prisma.ticket.findUnique({ where: { id } });
 }
 
-// CRUD COMPLETO 
-
-//Actualiza datos del ticket exceptuando el estado, 
-// pensado para corrección de errores al cargar tickets.
-
 export async function actualizarTicket(id: number, data: any) {
   try {
     await prisma.ticket.update({
@@ -104,9 +98,9 @@ export async function actualizarTicket(id: number, data: any) {
       data: {
         sector: data.sector,
         interno: data.interno,
-        categoria: data.categoria,
+        categoryId: Number(data.categoryId),
         ubicacion: data.ubicacion,
-        usuario_solicita: data.usuarioSolicita, // <-- Agregalo aquí también
+        usuario_solicita: data.usuarioSolicita,
         descripcion: data.descripcion,
         es_guardia: data.esGuardia
       }
@@ -119,7 +113,6 @@ export async function actualizarTicket(id: number, data: any) {
     return { success: false };
   }
 }
-
 
 export async function eliminarTicket(id: number) {
   try {
@@ -134,8 +127,6 @@ export async function eliminarTicket(id: number) {
     return { success: false };
   }
 }
-
-// Cambia el estado de un ticket de "FINALIZADO" a "EN_PROCESO".
 
 export async function reabrirTicket(id: number) {
   try {
@@ -165,5 +156,22 @@ export async function cambiarEstadoTicket(id: number, nuevoEstado: "EN_PROCESO" 
     return { success: true };
   } catch (error) {
     return { success: false };
+  }
+}
+
+export async function obtenerCategorias() {
+  return await prisma.category.findMany({
+    orderBy: { name: 'asc' }
+  });
+}
+
+export async function crearCategoria(nombre: string) {
+  try {
+    const nueva = await prisma.category.create({
+      data: { name: nombre }  
+    });
+    return { success: true, categoria: nueva };
+  } catch (error) {
+    return { success: false, message: "La categoría ya existe o hubo un error" };
   }
 }

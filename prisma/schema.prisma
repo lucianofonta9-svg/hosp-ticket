@@ -11,7 +11,8 @@ model Ticket {
   id               Int      @id @default(autoincrement())
   sector           String
   interno          String?
-  categoria        String
+  categoryId       Int
+  category         Category @relation(fields: [categoryId], references: [id])
   ubicacion        String   
   usuario_solicita String 
   descripcion      String
@@ -20,4 +21,10 @@ model Ticket {
   fecha_creacion   DateTime @default(now())
   fecha_cierre     DateTime?
   tecnico          String
+}
+
+model Category {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  tickets Ticket[]
 }
