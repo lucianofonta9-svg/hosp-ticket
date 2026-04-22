@@ -2,6 +2,9 @@
 
 import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import bcrypt from "bcrypt";
+import { signIn } from "@/auth";
+import { AuthError } from "next-auth";
 
 const prisma = new PrismaClient();
 
@@ -173,5 +176,46 @@ export async function crearCategoria(nombre: string) {
     return { success: true, categoria: nueva };
   } catch (error) {
     return { success: false, message: "La categoría ya existe o hubo un error" };
+  }
+}
+
+
+export async function crearUsuarioInicial() {
+  const passwordHasheada = await bcrypt.hash("contraseña_secreta", 10);
+  
+  try {
+    await prisma.user.create({
+      data: {
+        username: "luciano",
+        password: passwordHasheada,
+        nombre: "Luciano Fontanarrosa",
+        rol: "ADMIN"
+      }
+    });
+    return { success: true, message: "Usuario creado" };
+  } catch (error) {
+    return { success: false, message: "El usuario ya existe" };
+  }
+}
+
+
+
+
+export async function autenticar(
+  prevState: string | undefined, // Agregamos este parámetro
+  formData: FormData
+) {
+  try {
+    await signIn("credentials", formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case "CredentialsSignin":
+          return "Credenciales inválidas.";
+        default:
+          return "Algo salió mal.";
+      }
+    }
+    throw error;
   }
 }

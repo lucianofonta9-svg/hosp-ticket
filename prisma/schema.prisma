@@ -28,3 +28,12 @@ model Category {
   name    String   @unique
   tickets Ticket[]
 }
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  nombre    String
+  rol       String   @default("TECNICO") // "ADMIN" o "TECNICO"
+  createdAt DateTime @default(now())
+}
