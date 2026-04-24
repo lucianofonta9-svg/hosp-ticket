@@ -5,8 +5,10 @@ import { revalidatePath } from 'next/cache';
 import bcrypt from "bcrypt";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
+import { auth } from "@/auth";
 
 const prisma = new PrismaClient();
+
 
 export async function registrarTicket(datos: {
   sector: string;
@@ -19,6 +21,14 @@ export async function registrarTicket(datos: {
   esGuardia: boolean;
 }) {
   try {
+    // obtiene la sesión actual
+    const session = await auth();
+
+    // verifica que haya un usuario (seguridad extra)
+    if (!session?.user?.name) {
+      return { success: false, error: "Usuario no autenticado" };
+    }
+
     await prisma.ticket.create({
       data: {
         sector: datos.sector,
@@ -30,9 +40,12 @@ export async function registrarTicket(datos: {
         es_guardia: datos.esGuardia,
         estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
         fecha_cierre: datos.esResolucionInmediata ? new Date() : null,
-        tecnico: "Luciano Fontanarrosa",
+        
+        //nombre de la sesión
+        tecnico: session.user.name, 
       },
     });
+
     revalidatePath('/');
     return { success: true };
   } catch (error) {
@@ -40,7 +53,6 @@ export async function registrarTicket(datos: {
     return { success: false };
   }
 }
-
 export async function obtenerTicketsPendientes() {
   try {
     return await prisma.ticket.findMany({
@@ -180,29 +192,8 @@ export async function crearCategoria(nombre: string) {
 }
 
 
-export async function crearUsuarioInicial() {
-  const passwordHasheada = await bcrypt.hash("contraseña_secreta", 10);
-  
-  try {
-    await prisma.user.create({
-      data: {
-        username: "luciano",
-        password: passwordHasheada,
-        nombre: "Luciano Fontanarrosa",
-        rol: "ADMIN"
-      }
-    });
-    return { success: true, message: "Usuario creado" };
-  } catch (error) {
-    return { success: false, message: "El usuario ya existe" };
-  }
-}
-
-
-
-
 export async function autenticar(
-  prevState: string | undefined, // Agregamos este parámetro
+  _prevState: string | undefined, 
   formData: FormData
 ) {
   try {
@@ -217,5 +208,38 @@ export async function autenticar(
       }
     }
     throw error;
+  }
+}
+
+
+//temporal, porque hacer un login no es prioridad en el MVP
+export async function crearUsuariosManuales() {
+  try {
+    const passwordHasheada = await bcrypt.hash("1q2w3e4r", 10);
+
+    // lista de usuarios
+    const usuarios = [
+      { nombre: "Mauricio Gaya", username: "Mauricio", rol: "ADMIN" },
+    ];
+
+    // creamos todos juntos si es necesario
+    for (const u of usuarios) {
+      await prisma.user.upsert({
+        where: { username: u.username },
+        update: {}, // Si ya existe, no hace nada
+        create: {
+          nombre: u.nombre,
+          username: u.username,
+          password: passwordHasheada,
+          rol: u.rol,
+        },
+      });
+    }
+
+    revalidatePath("/");
+    return { success: true, message: "Los usuarios fueron creados/verificados." };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "Error al crear usuarios." };
   }
 }

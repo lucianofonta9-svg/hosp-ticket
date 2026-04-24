@@ -5,11 +5,12 @@ import { useFormStatus } from "react-dom";
 import { autenticar } from "../actions";
 
 export default function LoginPage() {
-  // Hook moderno para manejar el estado de la autenticación
+  // Hook para manejar el estado de la autenticación
   const [errorMessage, dispatch] = useActionState(autenticar, undefined);
 
   return (
     <main className="flex items-center justify-center md:h-screen bg-slate-100">
+    
       <div className="relative mx-auto flex w-full max-w-[400px] flex-col space-y-2.5 p-4">
         
         {/* Formulario de Acceso */}
@@ -44,7 +45,7 @@ export default function LoginPage() {
 
           <LoginButton />
 
-          {/* Alerta de Error - Solo se muestra si falla la autenticación */}
+          {/* Alerta de error si falla la autenticación */}
           {errorMessage && (
             <div className="bg-red-50 border-l-4 border-red-500 p-3 mt-2 rounded">
               <p className="text-xs text-red-700 font-bold text-center">
@@ -54,7 +55,7 @@ export default function LoginPage() {
           )}
         </form>
 
-        {/* Pie de página informativo */}
+      
         <p className="text-center text-[11px] text-slate-400 mt-4">
           Acceso restringido a personal de soporte técnico autorizado.
         </p>
@@ -67,6 +68,7 @@ export default function LoginPage() {
  * Componente interno para el botón de envío.
  * Utiliza useFormStatus para detectar si la acción está en proceso.
  */
+
 function LoginButton() {
   const { pending } = useFormStatus();
 
