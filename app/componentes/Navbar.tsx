@@ -13,7 +13,7 @@ export default async function Navbar() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-16">
           
-          {/* Lado Izquierdo: Logo */}
+          {/* logo */}
           <Link href="/" className="flex items-center gap-1 group shrink-0">
             <span className="font-bold tracking-tight text-lg text-white">HOSP</span>
             <div className="bg-blue-100 px-1 py-0.5 rounded-lg group-hover:bg-blue-300 transition-colors text-slate-900">
@@ -21,14 +21,14 @@ export default async function Navbar() {
             </div>
           </Link>
 
-          {/* Centro: Rutas de navegación */}
+          {/* navegación */}
           <div className="flex gap-8 items-center">
             <BotonNav href="/" label="Pendientes" />
             <BotonNav href="/historial" label="Historial" />
             <BotonNav href="/nuevo" label="Nuevo Ticket" />
           </div>
 
-          {/* Lado Derecho: Usuario y Logout */}
+          {/* usuario y logout */}
           <div className="flex items-center gap-4 pl-6 border-l border-slate-700 shrink-0">
             <div className="text-right hidden sm:block">
               <p className="text-[10px] font-bold text-blue-400 uppercase leading-none">Técnico</p>

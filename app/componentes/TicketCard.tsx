@@ -7,7 +7,8 @@ import { eliminarTicket, cambiarEstadoTicket } from '../actions';
 export default function TicketCard({ ticket, finalizarAction }: { ticket: any, finalizarAction: any }) {
   const [expandido, setExpandido] = useState(false);
 
-  const esLargo = ticket.descripcion.length > 100;
+  // Reducimos un poco el umbral para asegurar que el botón aparezca cuando debe
+  const esLargo = ticket.descripcion.length > 80; 
   const esPausado = ticket?.estado === "PAUSADO";
 
   const confirmarEliminar = async () => {
@@ -22,17 +23,31 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
     await cambiarEstadoTicket(ticket.id, nuevoEstado);
   };
 
+  const formatearFechaCard = (fecha: Date) => {
+    return new Intl.DateTimeFormat('es-AR', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(fecha));
+  };
+  
+
   return (
     <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10 transition-all ${
       esPausado ? 'bg-gray-100 border-gray-400 opacity-80' : 
       ticket.es_guardia ? 'bg-white border-red-600' : 'bg-white border-blue-500'
-    } ${expandido ? 'h-auto min-h-64' : 'h-64'}`}>
+    } ${expandido ? 'h-auto' : 'h-72'}`}> {/* Subimos de h-64 a h-72 para dar aire al botón */}
       
-      <div className="w-full overflow-hidden">
+      {/* Eliminamos overflow-hidden de este div para que el botón no se oculte */}
+      <div className="w-full">
         <div className="flex justify-between items-start mb-2">
-          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-            {ticket.ubicacion} {ticket.interno && `| Int: ${ticket.interno}`}
-          </span>
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              {ticket.ubicacion} {ticket.interno && `| Int: ${ticket.interno}`}
+            </span>
+          </div>
+
           <div className="flex gap-1">
             {esPausado && (
               <span className="bg-gray-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
@@ -55,14 +70,21 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           Solicita: {ticket.usuario_solicita}
         </p>
         
-        <p className={`mt-2 text-sm leading-snug wrap-break-word whitespace-normal ${esPausado ? 'text-gray-400 italic' : 'text-gray-600 italic'} ${!expandido && 'line-clamp-2'}`}>
+        <span className={`text-[9px] font-black uppercase w-fit px-1.5 py-0.5 rounded border mt-1 inline-block ${
+              esPausado ? 'bg-gray-200 text-gray-500 border-gray-300' : 'bg-emerald-50 text-emerald-700 border-emerald-100'
+            }`}>
+              {ticket.category?.name || "General"}
+        </span>
+
+        {/* Ajustamos el margen y el line-clamp */}
+        <p className={`mt-3 text-sm leading-snug break-words ${esPausado ? 'text-gray-400 italic' : 'text-gray-600 italic'} ${!expandido ? 'line-clamp-2' : ''}`}>
           "{ticket.descripcion}"
         </p>
 
         {esLargo && (
           <button 
             onClick={() => setExpandido(!expandido)}
-            className="text-blue-600 text-[10px] font-bold mt-1 hover:underline uppercase"
+            className="text-blue-600 text-[10px] font-black mt-2 hover:underline uppercase block"
           >
             {expandido ? 'Ver menos -' : 'Ver más +'}
           </button>
@@ -112,12 +134,29 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           </button>
 
           <div className="flex flex-col ml-1">
-            <span className="text-[9px] text-gray-400 font-bold uppercase leading-none mb-1">Tiempo</span>
-            <div className={`font-mono font-bold text-sm leading-none ${esPausado ? 'text-gray-400' : 'text-blue-700'}`}>
-              <Timer inicio={ticket.fecha_creacion} pausado={esPausado} />
-            </div>
+            <span className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none mb-1">Creado:</span>
+            <span className="text-xs font-black text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+              {formatearFechaCard(ticket.fecha_creacion)}
+            </span>
           </div>
         </div>
+
+        {/*
+
+          <div className="flex flex-col ml-1">
+
+            <span className="text-[9px] text-gray-400 font-bold uppercase leading-none mb-1">Tiempo</span>
+
+            <div className={`font-mono font-bold text-sm leading-none ${esPausado ? 'text-gray-400' : 'text-blue-700'}`}>
+
+            <Timer inicio={ticket.fecha_creacion} pausado={esPausado} />
+
+            </div>
+
+          </div>
+
+
+        */}
 
         {!esPausado && (
           <form action={finalizarAction}>

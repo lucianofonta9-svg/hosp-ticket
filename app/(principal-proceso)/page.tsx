@@ -1,6 +1,8 @@
 import { obtenerTicketsPendientes, finalizarTicket } from '../actions';
 import TicketCard from '../componentes/TicketCard';
 
+
+
 export default async function Home() {
   const tickets = await obtenerTicketsPendientes();
 
