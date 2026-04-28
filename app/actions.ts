@@ -21,13 +21,13 @@ export async function registrarTicket(datos: {
   esGuardia: boolean;
 }) {
   try {
-    // obtiene la sesión actual
     const session = await auth();
 
-    // verifica que haya un usuario (seguridad extra)
     if (!session?.user?.name) {
       return { success: false, error: "Usuario no autenticado" };
     }
+
+    const nombreTecnico = session.user.name;
 
     await prisma.ticket.create({
       data: {
@@ -40,9 +40,15 @@ export async function registrarTicket(datos: {
         es_guardia: datos.esGuardia,
         estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
         fecha_cierre: datos.esResolucionInmediata ? new Date() : null,
-        
-        //nombre de la sesión
-        tecnico: session.user.name, 
+        tecnico: nombreTecnico,
+        tecnico_cierre: datos.esResolucionInmediata ? nombreTecnico : null,
+        // Registro del log inicial
+        logs: {
+          create: {
+            estado: datos.esResolucionInmediata ? "FINALIZADO" : "CREADO",
+            tecnico: nombreTecnico,
+          }
+        }
       },
     });
 
@@ -63,7 +69,8 @@ export async function obtenerTicketsPendientes() {
         }
       },
       include: {
-        category: true, // para ver el nombre
+        category: true,
+        logs: { orderBy: { fecha: 'asc' } } // Incluimos logs ordenados
       },
       orderBy: [
         { estado: 'asc' },
@@ -71,11 +78,9 @@ export async function obtenerTicketsPendientes() {
       ],
     });
 
-    // map para convertir fechas y evitar errores
     return tickets.map(t => ({
       ...t,
       fecha_creacion: t.fecha_creacion.toISOString(),
-      
     }));
   } catch (error) {
     console.error("Error al obtener tickets:", error);
@@ -85,9 +90,22 @@ export async function obtenerTicketsPendientes() {
 
 export async function finalizarTicket(id: number) {
   try {
+    const session = await auth();
+    const nombreTecnico = session?.user?.name || "Sistema";
+
     await prisma.ticket.update({
       where: { id },
-      data: { estado: "RESUELTO", fecha_cierre: new Date() },
+      data: { 
+        estado: "RESUELTO", 
+        fecha_cierre: new Date(),
+        tecnico_cierre: nombreTecnico,
+        logs: {
+          create: {
+            estado: "FINALIZADO",
+            tecnico: nombreTecnico
+          }
+        }
+      },
     });
     revalidatePath('/');
     revalidatePath('/historial');
@@ -96,30 +114,34 @@ export async function finalizarTicket(id: number) {
     return { success: false };
   }
 }
+
 export async function obtenerHistorialTickets() {
   try {
     const tickets = await prisma.ticket.findMany({
       where: { estado: "RESUELTO" },
       include: {
-        category: true, // trae objeto completo de la categoría vinculada
+        category: true,
+        logs: { orderBy: { fecha: 'asc' } }
       },
       orderBy: { fecha_cierre: 'desc' },
     });
 
-    // map para serializar las fechas
     return tickets.map(t => ({
       ...t,
       fecha_creacion: t.fecha_creacion.toISOString(),
       fecha_cierre: t.fecha_cierre ? t.fecha_cierre.toISOString() : null,
-      // t.category ya viene incluido por el include de arriba
     }));
   } catch (error) {
     console.error("Error al obtener historial:", error);
     return [];
   }
 }
+
 export async function obtenerTicketPorId(id: number) {
-  return await prisma.ticket.findUnique({ where: { id } });
+  return await prisma.ticket.findUnique({ 
+    where: { id },
+    include: { logs: true } 
+  });
 }
 
 export async function actualizarTicket(id: number, data: any) {
@@ -161,11 +183,21 @@ export async function eliminarTicket(id: number) {
 
 export async function reabrirTicket(id: number) {
   try {
+    const session = await auth();
+    const nombreTecnico = session?.user?.name || "Sistema";
+
     await prisma.ticket.update({
       where: { id },
       data: {
         estado: "EN_PROCESO",
-        fecha_cierre: null 
+        fecha_cierre: null,
+        tecnico_cierre: null,
+        logs: {
+          create: {
+            estado: "REABIERTO",
+            tecnico: nombreTecnico
+          }
+        }
       }
     });
     revalidatePath('/');
@@ -179,9 +211,20 @@ export async function reabrirTicket(id: number) {
 
 export async function cambiarEstadoTicket(id: number, nuevoEstado: "EN_PROCESO" | "PAUSADO") {
   try {
+    const session = await auth();
+    const nombreTecnico = session?.user?.name || "Sistema";
+
     await prisma.ticket.update({
       where: { id },
-      data: { estado: nuevoEstado }
+      data: { 
+        estado: nuevoEstado,
+        logs: {
+          create: {
+            estado: nuevoEstado,
+            tecnico: nombreTecnico
+          }
+        }
+      }
     });
     revalidatePath('/');
     return { success: true };
@@ -203,11 +246,8 @@ export async function crearCategoria(name: string) {
         name: name.trim() 
       }
     });
-
-    // Al retornar el objeto de Prisma, TypeScript ya sabe que tiene 'id' y 'name'
     return categoria; 
   } catch (error: any) {
-    // Si la categoría ya existe (error de unicidad en Prisma)
     if (error.code === 'P2002') {
       throw new Error("La categoría ya existe");
     }
@@ -236,24 +276,20 @@ export async function autenticar(
   }
 }
 
-
-//temporal, porque hacer una pestaña para crear usuarios no es prioridad en el MVP
 export async function crearUsuariosManuales() {
   try {
     const passwordHasheada = await bcrypt.hash("1q2w3e4r", 10);
 
-    // lista de usuarios
     const usuarios = [
       { nombre: "Fernando Cabral", username: "Fernando", rol: "ADMIN" },
       { nombre: "Pablo Torcivia", username: "Pablo", rol: "ADMIN" },
       { nombre: "Vladimir Szkylnyj", username: "Vladimir", rol: "ADMIN" },
     ];
 
-    // para crear mas de uno
     for (const u of usuarios) {
       await prisma.user.upsert({
         where: { username: u.username },
-        update: {}, // si ya existe, no hace nada
+        update: {},
         create: {
           nombre: u.nombre,
           username: u.username,

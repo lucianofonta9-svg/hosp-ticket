@@ -21,6 +21,17 @@ model Ticket {
   fecha_creacion   DateTime @default(now())
   fecha_cierre     DateTime?
   tecnico          String
+  tecnico_cierre   String?
+  logs             TicketLog[]
+}
+
+model TicketLog {
+  id          Int      @id @default(autoincrement())
+  ticketId    Int
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  estado      String   
+  tecnico     String   
+  fecha       DateTime @default(now())
 }
 
 model Category {

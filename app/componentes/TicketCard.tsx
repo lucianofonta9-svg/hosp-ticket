@@ -1,13 +1,18 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Timer from './Timer';
 import Link from 'next/link';
 import { eliminarTicket, cambiarEstadoTicket } from '../actions'; 
 
 export default function TicketCard({ ticket, finalizarAction }: { ticket: any, finalizarAction: any }) {
   const [expandido, setExpandido] = useState(false);
+  const [mostrarLogs, setMostrarLogs] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Reducimos un poco el umbral para asegurar que el botón aparezca cuando debe
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const esLargo = ticket.descripcion.length > 80; 
   const esPausado = ticket?.estado === "PAUSADO";
 
@@ -31,15 +36,21 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
       minute: '2-digit',
     }).format(new Date(fecha));
   };
+
+  const formatearHoraLog = (fecha: string | Date) => {
+    return new Intl.DateTimeFormat('es-AR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(fecha));
+  };
   
 
   return (
     <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10 transition-all ${
       esPausado ? 'bg-gray-100 border-gray-400 opacity-80' : 
       ticket.es_guardia ? 'bg-white border-red-600' : 'bg-white border-blue-500'
-    } ${expandido ? 'h-auto' : 'h-72'}`}> {/* Subimos de h-64 a h-72 para dar aire al botón */}
+    } ${expandido || mostrarLogs ? 'h-auto' : 'h-72'}`}>
       
-      {/* Eliminamos overflow-hidden de este div para que el botón no se oculte */}
       <div className="w-full">
         <div className="flex justify-between items-start mb-2">
           <div className="flex flex-col gap-1">
@@ -76,7 +87,6 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
               {ticket.category?.name || "General"}
         </span>
 
-        {/* Ajustamos el margen y el line-clamp */}
         <p className={`mt-3 text-sm leading-snug break-words ${esPausado ? 'text-gray-400 italic' : 'text-gray-600 italic'} ${!expandido ? 'line-clamp-2' : ''}`}>
           "{ticket.descripcion}"
         </p>
@@ -88,6 +98,29 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           >
             {expandido ? 'Ver menos -' : 'Ver más +'}
           </button>
+        )}
+
+        {/* HISTORIAL CRONOLÓGICO (ESTILO HISTORIAL) */}
+        {mostrarLogs && ticket.logs && (
+          <div className="mt-4 pt-3 border-t border-dashed border-gray-200 animate-in fade-in slide-in-from-top-1 duration-200">
+            <p className="text-[9px] font-black uppercase text-slate-400 mb-3 tracking-widest">Trayectoria</p>
+            <div className="space-y-3 relative before:absolute before:left-1.5 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-slate-100">
+              {ticket.logs.map((log: any) => (
+                <div key={log.id} className="flex items-center gap-3 relative pl-5">
+                  <div className="absolute left-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow-sm"></div>
+                  <span className="text-[10px] font-bold text-blue-600 w-10">{formatearHoraLog(log.fecha)}</span>
+                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${
+                    log.estado === 'CREADO' ? 'bg-blue-100 text-blue-700' :
+                    log.estado === 'FINALIZADO' || log.estado === 'RESUELTO' ? 'bg-emerald-100 text-emerald-700' :
+                    log.estado === 'PAUSADO' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {log.estado}
+                  </span>
+                  <span className="text-[10px] text-gray-500 italic truncate">by {log.tecnico}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
@@ -102,6 +135,20 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
               <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
             </svg>
           </Link>
+
+          <button 
+            onClick={() => setMostrarLogs(!mostrarLogs)}
+            className={`p-2 rounded-xl transition-all shadow-sm border ${
+              mostrarLogs 
+                ? 'bg-blue-600 border-blue-700 text-white shadow-blue-200' 
+                : 'bg-slate-100 border-slate-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200'
+            }`}
+            title="Ver trayectoria"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </button>
 
           <button 
             onClick={alternarPausa}
@@ -136,27 +183,10 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           <div className="flex flex-col ml-1">
             <span className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none mb-1">Creado:</span>
             <span className="text-xs font-black text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
-              {formatearFechaCard(ticket.fecha_creacion)}
+              {mounted ? formatearFechaCard(ticket.fecha_creacion) : '--/-- --:--'}
             </span>
           </div>
         </div>
-
-        {/*
-
-          <div className="flex flex-col ml-1">
-
-            <span className="text-[9px] text-gray-400 font-bold uppercase leading-none mb-1">Tiempo</span>
-
-            <div className={`font-mono font-bold text-sm leading-none ${esPausado ? 'text-gray-400' : 'text-blue-700'}`}>
-
-            <Timer inicio={ticket.fecha_creacion} pausado={esPausado} />
-
-            </div>
-
-          </div>
-
-
-        */}
 
         {!esPausado && (
           <form action={finalizarAction}>
