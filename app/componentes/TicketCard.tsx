@@ -52,10 +52,12 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
     } ${expandido || mostrarLogs ? 'h-auto' : 'h-72'}`}>
       
       <div className="w-full">
-        <div className="flex justify-between items-start mb-2">
+        <div className="flex justify-between items-start ">
           <div className="flex flex-col gap-1">
+            
+            
             <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-              {ticket.ubicacion} {ticket.interno && `| Int: ${ticket.interno}`}
+              {ticket.ubicacion} {ticket.interno && `| Interno: ${ticket.interno}`}
             </span>
           </div>
 
@@ -73,21 +75,32 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           </div>
         </div>
         
-        <h2 className={`text-xl font-black leading-tight truncate ${esPausado ? 'text-gray-500' : 'text-slate-900'}`}>
+        <h2 className={`text-xl mb-2 font-black leading-tight truncate ${esPausado ? 'text-gray-500' : 'text-slate-900'}`}>
           {ticket.sector}
         </h2>
 
-        <p className={`text-[10px] font-bold uppercase mt-1 ${esPausado ? 'text-gray-400' : 'text-blue-600'}`}>
+
+        <p className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none mr-2">Urgencia:
+          <span className={`px-1 py-0.2 rounded-full text-[9px] font-black uppercase border ml-1 ${
+              ticket.urgencia === 'CRITICA' ? 'bg-red-100 text-red-700 border-red-200 animate-pulse' :
+              ticket.urgencia === 'MEDIA' ? 'bg-amber-100 text-amber-700 border-amber-200' :
+              'bg-emerald-100 text-emerald-700 border-emerald-200'
+            }`}>
+            {ticket.urgencia}
+          </span>
+        </p>
+
+        <p className={`text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none mt-1`}>
           Solicita: {ticket.usuario_solicita}
         </p>
-        
+        {/* HISTORIAL CRONOLÓGICO 
         <span className={`text-[9px] font-black uppercase w-fit px-1.5 py-0.5 rounded border mt-1 inline-block ${
               esPausado ? 'bg-gray-200 text-gray-500 border-gray-300' : 'bg-emerald-50 text-emerald-700 border-emerald-100'
             }`}>
               {ticket.category?.name || "General"}
         </span>
-
-        <p className={`mt-3 text-sm leading-snug break-words ${esPausado ? 'text-gray-400 italic' : 'text-gray-600 italic'} ${!expandido ? 'line-clamp-2' : ''}`}>
+        */}
+        <p className={`mt-1 text-sm leading-snug break-words ${esPausado ? 'text-gray-400 italic' : 'text-gray-600 italic'} ${!expandido ? 'line-clamp-2' : ''}`}>
           "{ticket.descripcion}"
         </p>
 
@@ -100,7 +113,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           </button>
         )}
 
-        {/* HISTORIAL CRONOLÓGICO (ESTILO HISTORIAL) */}
+        {/* HISTORIAL CRONOLÓGICO */}
         {mostrarLogs && ticket.logs && (
           <div className="mt-4 pt-3 border-t border-dashed border-gray-200 animate-in fade-in slide-in-from-top-1 duration-200">
             <p className="text-[9px] font-black uppercase text-slate-400 mb-3 tracking-widest">Trayectoria</p>
@@ -116,7 +129,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
                   }`}>
                     {log.estado}
                   </span>
-                  <span className="text-[10px] text-gray-500 italic truncate">by {log.tecnico}</span>
+                  <span className="text-[10px] text-gray-500 italic truncate">por {log.tecnico}</span>
                 </div>
               ))}
             </div>
@@ -182,7 +195,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
 
           <div className="flex flex-col ml-1">
             <span className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none mb-1">Creado:</span>
-            <span className="text-xs font-black text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+            <span className="text-xs font-black text-slate-700 py-0.5 rounded">
               {mounted ? formatearFechaCard(ticket.fecha_creacion) : '--/-- --:--'}
             </span>
           </div>

@@ -31,7 +31,7 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}>
         {/* Pasamos la sesión como prop a la Navbar para que decida qué mostrar */}
         <Navbar/> 
-        <main>
+        <main className="bg-gray-200">
           {children}
         </main>
       </body>

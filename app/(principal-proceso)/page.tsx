@@ -7,7 +7,7 @@ export default async function Home() {
   const tickets = await obtenerTicketsPendientes();
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-200 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8 border-b pb-4 border-gray-300">
           <h1 className="text-3xl font-black text-slate-800 tracking-tight">

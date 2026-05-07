@@ -26,6 +26,10 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
   const [descripcion, setDescripcion] = useState("");
   const [esResolucionInmediata, setEsResolucionInmediata] = useState(false);
   const [esGuardia, setEsGuardia] = useState(false);
+  // NUEVOS ESTADOS AÑADIDOS
+  const [urgencia, setUrgencia] = useState<"BAJA" | "MEDIA" | "CRITICA">("BAJA");
+  const [tipoAsistencia, setTipoAsistencia] = useState<"PRESENCIAL" | "REMOTA">("PRESENCIAL");
+  
   const [cargando, setCargando] = useState(false);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [nuevaCatNombre, setNuevaCatNombre] = useState("");
@@ -40,6 +44,8 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
     setDescripcion("");
     setEsGuardia(false);
     setEsResolucionInmediata(false);
+    setUrgencia("BAJA");
+    setTipoAsistencia("PRESENCIAL");
     setFecha(new Date().toISOString().split('T')[0]);
   };
 
@@ -50,17 +56,19 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
   useEffect(() => {
     if (editId) {
       setCargando(true);
-      obtenerTicketPorId(editId).then((ticket) => {
+      obtenerTicketPorId(editId).then((ticket: any) => {
         if (ticket) {
           setSectorSeleccionado(ticket.sector);
           setInterno(ticket.interno || "");
-          // CORRECCIÓN: Usamos ticket.categoryId directamente de la relación
           setCategoriaId(ticket.categoryId?.toString() || "");
           setUbicacion(ticket.ubicacion || ""); 
           setUsuarioSolicita(ticket.usuario_solicita || ""); 
           setDescripcion(ticket.descripcion);
           setEsGuardia(ticket.es_guardia);
-          // Seteamos la fecha del ticket para que no se ponga la de hoy al editar
+          // Recuperar nuevos campos al editar
+          setUrgencia(ticket.urgencia || "BAJA");
+          setTipoAsistencia(ticket.tipo_asistencia || "PRESENCIAL");
+
           if (ticket.fecha_creacion) {
             setFecha(new Date(ticket.fecha_creacion).toISOString().split('T')[0]);
           }
@@ -80,11 +88,8 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
 
   const manejarCrearCategoria = async () => {
     if (!nuevaCatNombre.trim()) return;
-    
-    // CORRECCIÓN: Manejo de la respuesta para asegurar que se guarde el ID
     const res = await crearCategoria(nuevaCatNombre.trim());
-    
-    if (res && res.id) { // Asumiendo que crearCategoria devuelve el objeto creado
+    if (res && res.id) {
       setCategorias(prev => [...prev, res]);
       setCategoriaId(res.id.toString());
       setNuevaCatNombre("");
@@ -95,7 +100,6 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
   };
 
   const manejarGuardado = async () => {
-    // CORRECCIÓN: Validación mejorada
     if (!sectorSeleccionado || !categoriaId || !ubicacion || !descripcion) {
         return alert("Por favor, complete todos los campos obligatorios.");
     }
@@ -108,15 +112,17 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
       usuarioSolicita, 
       descripcion,
       esResolucionInmediata,
+      urgencia, // Ahora usa el estado de React
+      tipoAsistencia, // Ahora usa el estado de React
       esGuardia,
-      tecnico: userName // Enviamos el técnico que viene por props
+      tecnico: userName 
     };
 
     const res = editId ? await actualizarTicket(editId, datos) : await registrarTicket(datos);
 
     if (res.success) {
       router.push('/'); 
-      router.refresh(); // CORRECCIÓN: Forzamos el refresco para ver los cambios
+      router.refresh(); 
     } else {
       alert("Error al procesar la solicitud.");
     }
@@ -125,7 +131,7 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
   if (cargando) return <p className="text-center py-20 font-bold text-gray-500 italic text-lg animate-pulse">Cargando...</p>;
 
   return (
-    <main className="p-8 max-w-2xl mx-auto bg-gray-50 min-h-screen">
+    <main className="p-8 max-w-2xl mx-auto bg-gray-200 min-h-screen">
       <h1 className="text-2xl font-black mb-6 text-slate-800 border-b pb-2 flex justify-center uppercase tracking-tighter">
         {editId ? 'Editar Ticket  ✏️' : 'Crear Ticket 📋'}
       </h1>
@@ -209,6 +215,34 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
             />
           </div>
         </div>
+            
+        {/* NUEVA FILA: URGENCIA Y ASISTENCIA */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold uppercase text-gray-500">Urgencia</label>
+            <select 
+              value={urgencia}
+              onChange={(e) => setUrgencia(e.target.value as any)}
+              className="p-2 border rounded bg-white font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="BAJA">🟢 BAJA</option>
+              <option value="MEDIA">🟡 MEDIA</option>
+              <option value="CRITICA">🔴 CRÍTICA</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-bold uppercase text-gray-500">Asistencia</label>
+            <select 
+              value={tipoAsistencia}
+              onChange={(e) => setTipoAsistencia(e.target.value as any)}
+              className="p-2 border rounded bg-white font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="PRESENCIAL">🏢 PRESENCIAL</option>
+              <option value="REMOTA">💻 REMOTA</option>
+            </select>
+          </div>
+        </div>
 
         {/* CATEGORÍA DINÁMICA */}
         <div>
@@ -229,7 +263,6 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
                 type="button"
                 onClick={() => setMostrandoInputCat(true)}
                 className="bg-slate-100 px-3 rounded-lg border border-slate-300 text-slate-600 font-bold hover:bg-slate-200 transition-colors"
-                title="Nueva categoría"
               >
                 +
               </button>

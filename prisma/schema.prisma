@@ -23,6 +23,8 @@ model Ticket {
   tecnico          String
   tecnico_cierre   String?
   logs             TicketLog[]
+  urgencia         Urgencia       @default(BAJA)
+  tipo_asistencia  TipoAsistencia @default(PRESENCIAL)
 }
 
 model TicketLog {
@@ -47,4 +49,15 @@ model User {
   nombre    String
   rol       String   @default("TECNICO") // "ADMIN" o "TECNICO"
   createdAt DateTime @default(now())
+}
+
+enum Urgencia {
+  BAJA
+  MEDIA
+  CRITICA
+}
+
+enum TipoAsistencia {
+  PRESENCIAL
+  REMOTA
 }

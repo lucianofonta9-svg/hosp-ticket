@@ -9,7 +9,6 @@ import { auth } from "@/auth";
 
 const prisma = new PrismaClient();
 
-
 export async function registrarTicket(datos: {
   sector: string;
   interno: string;
@@ -19,6 +18,8 @@ export async function registrarTicket(datos: {
   descripcion: string;
   esResolucionInmediata: boolean;
   esGuardia: boolean;
+  urgencia: "BAJA" | "MEDIA" | "CRITICA"; // Añadido
+  tipoAsistencia: "PRESENCIAL" | "REMOTA"; // Añadido
 }) {
   try {
     const session = await auth();
@@ -38,6 +39,8 @@ export async function registrarTicket(datos: {
         usuario_solicita: datos.usuarioSolicita,
         descripcion: datos.descripcion,
         es_guardia: datos.esGuardia,
+        urgencia: datos.urgencia, // Nuevo campo
+        tipo_asistencia: datos.tipoAsistencia, // Nuevo campo
         estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
         fecha_cierre: datos.esResolucionInmediata ? new Date() : null,
         tecnico: nombreTecnico,
