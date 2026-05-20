@@ -188,7 +188,7 @@ export async function actualizarTicket(id: number, data: any) {
       datosActualizacion.fecha_creacion = new Date(data.fechaManual);
     }
 
-    await prisma.prisma.ticket.update({
+    await prisma.ticket.update({
       where: { id },
       data: datosActualizacion
     });

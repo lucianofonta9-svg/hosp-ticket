@@ -111,13 +111,12 @@ export default function NuevoTicket() {
         return alert("Por favor, complete todos los campos obligatorios.");
     }
 
-    // Buscamos el interno automáticamente desde la constante antes de guardar
     const sectorEncontrado = DATOS_SECTORES.find(s => s.nombre === sectorSeleccionado);
     const internoAutomatico = sectorEncontrado ? sectorEncontrado.interno : "";
 
     const datos = {
       sector: sectorSeleccionado,
-      interno: internoAutomatico, // Se sigue enviando y guardando de fondo
+      interno: internoAutomatico, 
       categoryId: parseInt(categoriaId),
       ubicacion: ubicacionId.toString(), 
       usuarioSolicita, 
