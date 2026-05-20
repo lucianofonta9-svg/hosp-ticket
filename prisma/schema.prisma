@@ -25,6 +25,9 @@ model Ticket {
   logs             TicketLog[]
   urgencia         Urgencia       @default(BAJA)
   tipo_asistencia  TipoAsistencia @default(PRESENCIAL)
+  solucion         String?
+  destacado        Boolean        @default(false)
+
 }
 
 model TicketLog {

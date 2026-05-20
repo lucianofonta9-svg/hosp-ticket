@@ -1,32 +1,34 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { DATOS_SECTORES } from '../../constants/sectores';
 import { UBICACIONES } from '../../constants/ubicaciones'; 
 import { registrarTicket, obtenerTicketPorId, actualizarTicket, obtenerCategorias, crearCategoria } from '../actions';
 
-interface NuevoTicketProps {
-  userName: string;
-}
+const obtenerFechaHoraLocalActual = () => {
+  const d = new Date();
+  const tzOffset = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+};
 
-export default function NuevoTicket({ userName }: NuevoTicketProps) {
+export default function NuevoTicket() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
   const queryId = searchParams.get('edit');
   const editId = queryId ? Number(queryId) : null;
 
-  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+  // ESTADOS
+  const [fechaHora, setFechaHora] = useState(obtenerFechaHoraLocalActual());
   const [sectorSeleccionado, setSectorSeleccionado] = useState("");
-  const [interno, setInterno] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
-  const [ubicacion, setUbicacion] = useState(""); 
+  const [ubicacionId, setUbicacionId] = useState<number | "">(""); 
   const [usuarioSolicita, setUsuarioSolicita] = useState(""); 
   const [descripcion, setDescripcion] = useState("");
+  const [solucion, setSolucion] = useState("");
   const [esResolucionInmediata, setEsResolucionInmediata] = useState(false);
   const [esGuardia, setEsGuardia] = useState(false);
-  // NUEVOS ESTADOS AÑADIDOS
   const [urgencia, setUrgencia] = useState<"BAJA" | "MEDIA" | "CRITICA">("BAJA");
   const [tipoAsistencia, setTipoAsistencia] = useState<"PRESENCIAL" | "REMOTA">("PRESENCIAL");
   
@@ -37,17 +39,22 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
 
   const limpiarFormulario = () => {
     setSectorSeleccionado("");
-    setInterno("");
     setCategoriaId("");
-    setUbicacion(""); 
+    setUbicacionId(""); 
     setUsuarioSolicita(""); 
     setDescripcion("");
+    setSolucion("");
     setEsGuardia(false);
     setEsResolucionInmediata(false);
     setUrgencia("BAJA");
     setTipoAsistencia("PRESENCIAL");
-    setFecha(new Date().toISOString().split('T')[0]);
+    setFechaHora(obtenerFechaHoraLocalActual());
   };
+
+  const sectoresFiltrados = useMemo(() => {
+    if (ubicacionId === "") return [];
+    return DATOS_SECTORES.filter(sector => sector.ubicacionId === ubicacionId);
+  }, [ubicacionId]);
 
   useEffect(() => {
     obtenerCategorias().then(setCategorias);
@@ -58,19 +65,20 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
       setCargando(true);
       obtenerTicketPorId(editId).then((ticket: any) => {
         if (ticket) {
+          setUbicacionId(Number(ticket.ubicacion) || ""); 
           setSectorSeleccionado(ticket.sector);
-          setInterno(ticket.interno || "");
           setCategoriaId(ticket.categoryId?.toString() || "");
-          setUbicacion(ticket.ubicacion || ""); 
           setUsuarioSolicita(ticket.usuario_solicita || ""); 
           setDescripcion(ticket.descripcion);
+          setSolucion(ticket.solucion || "");
           setEsGuardia(ticket.es_guardia);
-          // Recuperar nuevos campos al editar
           setUrgencia(ticket.urgencia || "BAJA");
           setTipoAsistencia(ticket.tipo_asistencia || "PRESENCIAL");
 
           if (ticket.fecha_creacion) {
-            setFecha(new Date(ticket.fecha_creacion).toISOString().split('T')[0]);
+            const d = new Date(ticket.fecha_creacion);
+            const tzOffset = d.getTimezoneOffset() * 60000;
+            setFechaHora(new Date(d.getTime() - tzOffset).toISOString().slice(0, 16));
           }
         }
         setCargando(false);
@@ -80,10 +88,9 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
     }
   }, [editId]);
 
-  const manejarCambioSector = (nombreSector: string) => {
-    setSectorSeleccionado(nombreSector);
-    const sectorEncontrado = DATOS_SECTORES.find(s => s.nombre === nombreSector);
-    setInterno(sectorEncontrado ? sectorEncontrado.interno : "");
+  const manejarCambioUbicacion = (id: string) => {
+    setUbicacionId(id === "" ? "" : Number(id));
+    setSectorSeleccionado("");
   };
 
   const manejarCrearCategoria = async () => {
@@ -100,22 +107,27 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
   };
 
   const manejarGuardado = async () => {
-    if (!sectorSeleccionado || !categoriaId || !ubicacion || !descripcion) {
+    if (ubicacionId === "" || !sectorSeleccionado || !categoriaId || !descripcion) {
         return alert("Por favor, complete todos los campos obligatorios.");
     }
 
+    // Buscamos el interno automáticamente desde la constante antes de guardar
+    const sectorEncontrado = DATOS_SECTORES.find(s => s.nombre === sectorSeleccionado);
+    const internoAutomatico = sectorEncontrado ? sectorEncontrado.interno : "";
+
     const datos = {
       sector: sectorSeleccionado,
-      interno,
+      interno: internoAutomatico, // Se sigue enviando y guardando de fondo
       categoryId: parseInt(categoriaId),
-      ubicacion, 
+      ubicacion: ubicacionId.toString(), 
       usuarioSolicita, 
       descripcion,
+      solucion,
+      fechaManual: fechaHora,
       esResolucionInmediata,
-      urgencia, // Ahora usa el estado de React
-      tipoAsistencia, // Ahora usa el estado de React
-      esGuardia,
-      tecnico: userName 
+      urgencia,
+      tipoAsistencia,
+      esGuardia
     };
 
     const res = editId ? await actualizarTicket(editId, datos) : await registrarTicket(datos);
@@ -131,52 +143,24 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
   if (cargando) return <p className="text-center py-20 font-bold text-gray-500 italic text-lg animate-pulse">Cargando...</p>;
 
   return (
-    <main className="p-8 max-w-2xl mx-auto bg-gray-200 min-h-screen">
+    <main className="p-8 max-w-2xl mx-auto bg-gray-200 min-h-screen font-sans">
       <h1 className="text-2xl font-black mb-6 text-slate-800 border-b pb-2 flex justify-center uppercase tracking-tighter">
         {editId ? 'Editar Ticket  ✏️' : 'Crear Ticket 📋'}
       </h1>
 
       <div className="space-y-5 bg-white p-6 rounded-xl shadow-md border border-gray-200">
         
-        {/* FILA 1: FECHA Y UBICACIÓN */}
+        {/* GRUPO 1: FECHA - USUARIO SOLICITANTE */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Fecha</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Fecha y Hora</label>
             <input 
-              type="date" 
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              className="w-full p-2 border rounded bg-gray-50 focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Ubicación</label>
-            <select 
-              value={ubicacion}
-              onChange={(e) => setUbicacion(e.target.value)}
+              type="datetime-local" 
+              value={fechaHora}
+              onChange={(e) => setFechaHora(e.target.value)}
               className="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700"
-            >
-              <option value="">Seleccione lugar...</option>
-              {UBICACIONES.map(u => (
-                <option key={u} value={u}>{u}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* FILA 2: TÉCNICO Y USUARIO */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Técnico</label>
-            <input 
-              type="text" 
-              value={userName} 
-              disabled 
-              className="w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed font-bold" 
             />
           </div>
-
           <div>
             <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Usuario Solicitante</label>
             <input 
@@ -189,62 +173,67 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
           </div>
         </div>
 
-        {/* FILA 3: SECTOR E INTERNO */}
+        {/* GRUPO 2: UBICACIÓN - SECTOR */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Sector</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Ubicación (Lugar)</label>
             <select 
-              value={sectorSeleccionado}
-              onChange={(e) => manejarCambioSector(e.target.value)}
+              value={ubicacionId}
+              onChange={(e) => manejarCambioUbicacion(e.target.value)}
               className="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700"
             >
-              <option value="">Seleccione sector...</option>
-              {DATOS_SECTORES.map(s => (
-                <option key={s.nombre} value={s.nombre}>{s.nombre}</option>
+              <option value="">Seleccione lugar...</option>
+              {UBICACIONES.map(u => (
+                <option key={u.id} value={u.id}>{u.nombre}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Interno</label>
-            <input 
-              type="text" 
-              value={interno}
-              onChange={(e) => setInterno(e.target.value)}
-              placeholder="Ej: 104"
-              className="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700"
-            />
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Sector</label>
+            <select 
+              value={sectorSeleccionado}
+              onChange={(e) => setSectorSeleccionado(e.target.value)}
+              disabled={ubicacionId === ""}
+              className={`w-full p-2 border rounded bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium text-slate-700 ${ubicacionId === "" ? 'cursor-not-allowed bg-gray-50' : ''}`}
+            >
+              <option value="">
+                {ubicacionId === "" ? "Primero elija ubicación..." : "Seleccione sector..."}
+              </option>
+              {sectoresFiltrados.map(s => (
+                <option key={s.nombre} value={s.nombre}>{s.nombre}</option>
+              ))}
+            </select>
           </div>
         </div>
-            
-        {/* NUEVA FILA: URGENCIA Y ASISTENCIA */}
+
+        {/* GRUPO 3: ASISTENCIA - URGENCIA */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold uppercase text-gray-500">Urgencia</label>
+          <div className="flex flex-col">
+            <label className="text-xs font-bold uppercase text-gray-500 mb-1">Asistencia</label>
+            <select 
+              value={tipoAsistencia}
+              onChange={(e) => setTipoAsistencia(e.target.value as any)}
+              className="w-full p-2 border rounded bg-white font-medium text-slate-700 outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="PRESENCIAL">🏢 PRESENCIAL</option>
+              <option value="REMOTA">💻 REMOTA</option>
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs font-bold uppercase text-gray-500 mb-1">Urgencia</label>
             <select 
               value={urgencia}
               onChange={(e) => setUrgencia(e.target.value as any)}
-              className="p-2 border rounded bg-white font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 border rounded bg-white font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500 text-slate-700"
             >
               <option value="BAJA">🟢 BAJA</option>
               <option value="MEDIA">🟡 MEDIA</option>
               <option value="CRITICA">🔴 CRÍTICA</option>
             </select>
           </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold uppercase text-gray-500">Asistencia</label>
-            <select 
-              value={tipoAsistencia}
-              onChange={(e) => setTipoAsistencia(e.target.value as any)}
-              className="p-2 border rounded bg-white font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="PRESENCIAL">🏢 PRESENCIAL</option>
-              <option value="REMOTA">💻 REMOTA</option>
-            </select>
-          </div>
         </div>
-
-        {/* CATEGORÍA DINÁMICA */}
+            
+        {/* GRUPO 4: CATEGORÍA DEL PROBLEMA (OCUPA EL 100% DE LA FILA) */}
         <div>
           <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Categoría del Problema</label>
           {!mostrandoInputCat ? (
@@ -273,7 +262,7 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
                 type="text" 
                 value={nuevaCatNombre}
                 onChange={(e) => setNuevaCatNombre(e.target.value)}
-                className="flex-1 p-2 border rounded border-blue-400 outline-none focus:ring-2 focus:ring-blue-200"
+                className="flex-1 p-2 border rounded border-blue-400 outline-none focus:ring-2 focus:ring-blue-200 text-slate-700 font-medium"
                 placeholder="Nombre de la categoría..."
                 autoFocus
               />
@@ -294,9 +283,20 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
           />
         </div>
 
+        {/* CAMPO SOLUCIÓN */}
+        <div>
+          <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Solución técnica (Opcional)</label>
+          <textarea 
+            value={solucion}
+            onChange={(e) => setSolucion(e.target.value)}
+            className="w-full p-2 border rounded h-24 focus:ring-2 focus:ring-blue-500 outline-none font-sans text-slate-700"
+            placeholder="Escriba los detalles de la solución aquí si ya fue resuelto..."
+          />
+        </div>
+
         {/* OPCIONES ESPECIALES */}
-        <div className="flex justify-evenly gap-2 w-full">
-          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg flex-1">
+        <div className="flex justify-evenly gap-2 w-full pt-2">
+          <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl flex-1">
             <input 
               type="checkbox" 
               id="guardia"
@@ -304,46 +304,46 @@ export default function NuevoTicket({ userName }: NuevoTicketProps) {
               onChange={(e) => setEsGuardia(e.target.checked)}
               className="w-5 h-5 accent-red-600 cursor-pointer"
             />
-            <label htmlFor="guardia" className="text-red-600 font-bold cursor-pointer select-none text-sm uppercase">
-              Guardia
+            <label htmlFor="guardia" className="text-red-700 font-bold cursor-pointer select-none text-sm uppercase tracking-tight">
+              Ticket de Guardia
             </label>
           </div>
 
           {!editId && (
-            <div className="flex items-center p-3 bg-green-50 rounded-lg border border-green-200 flex-1">
+            <div className="flex items-center p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex-1 gap-2">
               <input 
                 type="checkbox" 
                 id="resuelto"
                 checked={esResolucionInmediata}
                 onChange={(e) => setEsResolucionInmediata(e.target.checked)}
-                className="w-5 h-5 accent-green-600 cursor-pointer"
+                className="w-5 h-5 accent-emerald-600 cursor-pointer"
               />
-              <label htmlFor="resuelto" className="ml-3 font-bold text-green-800 select-none cursor-pointer text-sm uppercase">
-                Solucionado
+              <label htmlFor="resuelto" className="font-bold text-emerald-800 select-none cursor-pointer text-sm uppercase tracking-tight">
+                Resolución Inmediata
               </label>
             </div>
           )}  
         </div>
 
         {/* BOTONES DE ACCIÓN */}
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-3 pt-4 border-t border-gray-100">
             {editId && (
                 <button 
                   type="button"
                   onClick={() => router.push('/')}
-                  className="w-1/3 py-3 bg-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-300 transition-all uppercase text-xs"
+                  className="w-1/3 py-3.5 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition-all uppercase text-xs tracking-widest border border-gray-200"
                 >
                   Cancelar
                 </button>
             )}
             <button 
                 onClick={manejarGuardado}
-                className={`flex-1 py-3 rounded-lg font-black transition-all shadow-lg text-white uppercase tracking-wider ${
-                    editId ? 'bg-orange-500 hover:bg-orange-600' : 
-                    esResolucionInmediata ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-700 hover:bg-blue-800'
+                className={`flex-1 py-3.5 rounded-xl font-black transition-all shadow-lg text-white uppercase tracking-wider text-sm active:scale-95 ${
+                    editId ? 'bg-orange-500 hover:bg-orange-600 shadow-orange-100' : 
+                    esResolucionInmediata ? 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100' : 'bg-blue-700 hover:bg-blue-800 shadow-blue-100'
                 }`}
             >
-                {editId ? 'Guardar Cambios' : esResolucionInmediata ? 'Finalizar y Guardar' : 'Crear Ticket'}
+                {editId ? 'Guardar Cambios ✏️' : esResolucionInmediata ? 'Finalizar y Guardar ✅' : 'Crear Ticket ➕'}
             </button>
         </div>
       </div>

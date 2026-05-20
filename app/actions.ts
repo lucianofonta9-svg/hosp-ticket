@@ -16,10 +16,13 @@ export async function registrarTicket(datos: {
   ubicacion: string; 
   usuarioSolicita: string; 
   descripcion: string;
+  solucion?: string;             
+  fechaManual: string; 
   esResolucionInmediata: boolean;
   esGuardia: boolean;
-  urgencia: "BAJA" | "MEDIA" | "CRITICA"; // Añadido
-  tipoAsistencia: "PRESENCIAL" | "REMOTA"; // Añadido
+  destacado: boolean;                 // NUEVO
+  urgencia: "BAJA" | "MEDIA" | "CRITICA";
+  tipoAsistencia: "PRESENCIAL" | "REMOTA";
 }) {
   try {
     const session = await auth();
@@ -29,6 +32,7 @@ export async function registrarTicket(datos: {
     }
 
     const nombreTecnico = session.user.name;
+    const fechaCreacion = new Date(datos.fechaManual);
 
     await prisma.ticket.create({
       data: {
@@ -38,18 +42,21 @@ export async function registrarTicket(datos: {
         ubicacion: datos.ubicacion,
         usuario_solicita: datos.usuarioSolicita,
         descripcion: datos.descripcion,
+        solucion: datos.solucion || null, 
         es_guardia: datos.esGuardia,
-        urgencia: datos.urgencia, // Nuevo campo
-        tipo_asistencia: datos.tipoAsistencia, // Nuevo campo
+        destacado: datos.destacado,         // NUEVO
+        urgencia: datos.urgencia,
+        tipo_asistencia: datos.tipoAsistencia,
         estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
+        fecha_creacion: fechaCreacion,    
         fecha_cierre: datos.esResolucionInmediata ? new Date() : null,
         tecnico: nombreTecnico,
         tecnico_cierre: datos.esResolucionInmediata ? nombreTecnico : null,
-        // Registro del log inicial
         logs: {
           create: {
             estado: datos.esResolucionInmediata ? "FINALIZADO" : "CREADO",
             tecnico: nombreTecnico,
+            fecha: fechaCreacion          
           }
         }
       },
@@ -73,15 +80,29 @@ export async function obtenerTicketsPendientes() {
       },
       include: {
         category: true,
-        logs: { orderBy: { fecha: 'asc' } } // Incluimos logs ordenados
+        logs: { orderBy: { fecha: 'asc' } }
       },
-      orderBy: [
-        { estado: 'asc' },
-        { fecha_creacion: 'asc' }
-      ],
     });
 
-    return tickets.map(t => ({
+    const pesosUrgencia = {
+      CRITICA: 1,
+      MEDIA: 2,
+      BAJA: 3,
+    };
+
+    const ticketsOrdenados = tickets.sort((a, b) => {
+      if (a.estado !== b.estado) {
+        return a.estado.localeCompare(b.estado);
+      }
+      const pesoA = pesosUrgencia[a.urgencia as keyof typeof pesosUrgencia] || 3;
+      const pesoB = pesosUrgencia[b.urgencia as keyof typeof pesosUrgencia] || 3;
+      if (pesoA !== pesoB) {
+        return pesoA - pesoB;
+      }
+      return new Date(a.fecha_creacion).getTime() - new Date(b.fecha_creacion).getTime();
+    });
+
+    return ticketsOrdenados.map(t => ({
       ...t,
       fecha_creacion: t.fecha_creacion.toISOString(),
     }));
@@ -149,17 +170,27 @@ export async function obtenerTicketPorId(id: number) {
 
 export async function actualizarTicket(id: number, data: any) {
   try {
-    await prisma.ticket.update({
+    const datosActualizacion: any = {
+      sector: data.sector,
+      interno: data.interno,
+      categoryId: Number(data.categoryId),
+      ubicacion: data.ubicacion,
+      usuario_solicita: data.usuarioSolicita,
+      descripcion: data.descripcion,
+      solucion: data.solucion || null,   
+      es_guardia: data.esGuardia,
+      destacado: data.destacado,         // NUEVO
+      urgencia: data.urgencia,          
+      tipo_asistencia: data.tipoAsistencia 
+    };
+
+    if (data.fechaManual) {              
+      datosActualizacion.fecha_creacion = new Date(data.fechaManual);
+    }
+
+    await prisma.prisma.ticket.update({
       where: { id },
-      data: {
-        sector: data.sector,
-        interno: data.interno,
-        categoryId: Number(data.categoryId),
-        ubicacion: data.ubicacion,
-        usuario_solicita: data.usuarioSolicita,
-        descripcion: data.descripcion,
-        es_guardia: data.esGuardia
-      }
+      data: datosActualizacion
     });
     revalidatePath('/');
     revalidatePath('/historial');
@@ -259,7 +290,6 @@ export async function crearCategoria(name: string) {
   }
 }
 
-
 export async function autenticar(
   _prevState: string | undefined, 
   formData: FormData
@@ -307,5 +337,20 @@ export async function crearUsuariosManuales() {
   } catch (error) {
     console.error(error);
     return { success: false, message: "Error al crear usuarios." };
+  }
+}
+
+export async function alternarDestacadoTicket(id: number, estadoActual: boolean) {
+  try {
+    await prisma.ticket.update({
+      where: { id },
+      data: { destacado: !estadoActual }
+    });
+    revalidatePath('/');
+    revalidatePath('/historial');
+    return { success: true };
+  } catch (error) {
+    console.error("Error al alternar destacado:", error);
+    return { success: false };
   }
 }
