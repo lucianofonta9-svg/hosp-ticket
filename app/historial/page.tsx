@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { obtenerHistorialTickets, eliminarTicket, reabrirTicket } from '../actions';
+import { obtenerHistorialTickets, eliminarTicket, reabrirTicket, alternarDestacadoTicket } from '../actions';
+import { UBICACIONES } from '../../constants/ubicaciones';
 
 export default function HistorialPage() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -18,7 +19,7 @@ export default function HistorialPage() {
   }, []);
 
   const confirmarEliminar = async (id: number) => {
-    if (window.confirm("¿Estás seguro de eliminar este registro permanentemente?")) {
+    if (window.confirm("¿Estás seguro de eliminar este registro? Pasará al estado de Eliminado.")) {
       await eliminarTicket(id);
       cargarTickets();
     }
@@ -31,15 +32,28 @@ export default function HistorialPage() {
     }
   };
 
+  const manejarDestacado = async (id: number, estadoActual: boolean) => {
+    await alternarDestacadoTicket(id, estadoActual);
+    cargarTickets(); 
+  };
+
   const alternarDescripcion = (id: number) => {
     setDescripcionesAbiertas(prev => 
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
   };
 
+  const obtenerNombreUbicacion = (idString: string) => {
+    const idNumero = Number(idString);
+    const lugar = UBICACIONES.find(u => u.id === idNumero);
+    return lugar ? lugar.nombre : "Desconocida";
+  };
+
   const ticketsFiltrados = tickets.filter(t => 
     t.sector.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
-    t.descripcion.toLowerCase().includes(filtroGeneral.toLowerCase())
+    t.descripcion.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
+    (t.solucion && t.solucion.toLowerCase().includes(filtroGeneral.toLowerCase())) ||
+    t.tecnico.toLowerCase().includes(filtroGeneral.toLowerCase())
   );
 
   const calcularDuracion = (inicioStr: string, finStr: string | null) => {
@@ -53,65 +67,61 @@ export default function HistorialPage() {
     return `${horas}h ${minutos}m`;
   };
 
-  const formatearHoraLog = (fecha: string | Date) => {
+  const formatearFecha = (fecha: string | Date) => {
     return new Intl.DateTimeFormat('es-AR', { 
-      day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
+      day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' 
     }).format(new Date(fecha));
   };
 
   return (
-    <div className="min-h-screen bg-gray-200 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-100 p-6 font-sans">
+      <div className="max-w-[1600px] mx-auto w-full">
         
-        {/* CABECERA IDÉNTICA AL HOME */}
-        <div className="flex justify-between items-center mb-8 border-b pb-4 border-gray-300">
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">
+        <div className="flex justify-between items-center mb-6 border-b pb-4 border-gray-300">
+          <h1 className="text-2xl font-semibold text-gray-800">
             Historial de Soporte
           </h1>
-          <div className="bg-white px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-gray-500">
-            {ticketsFiltrados.length} Registros Encontrados
+          <div className="bg-white px-4 py-2 rounded-lg shadow-sm border text-sm text-gray-600">
+            {ticketsFiltrados.length} Registros
           </div>
         </div>
 
-        {/* Buscador alineado a la izquierda */}
         <div className="w-full max-w-md mb-6">
           <input 
             type="text" 
-            placeholder="Buscar por sector o descripción..." 
-            className="w-full p-3 px-5 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium text-sm transition-all"
+            placeholder="Buscar..." 
+            className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm"
             value={filtroGeneral}
             onChange={(e) => setFiltroGeneral(e.target.value)}
           />
         </div>
   
-        <div className="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-200">
-          <table className="w-full text-left border-collapse table-fixed">
-            <colgroup>
-              <col className="w-16" /> 
-              <col className="w-40" /> 
-              <col className="w-40" /> 
-              <col className="w-40" /> 
-              <col className="w-32" /> 
-              <col className="w-auto" /> 
-              <col className="w-28" /> 
-              <col className="w-44" /> 
-            </colgroup>
+        <div className="bg-white shadow-md rounded-xl border border-gray-200 overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-max text-sm">
             <thead>
-              <tr className="bg-slate-800 text-white">
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">ID</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Creado</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Cerrado</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Sector</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-emerald-400">Cat.</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Descripción</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-orange-400">Total</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Acciones</th>
+              <tr className="bg-gray-800 text-gray-100">
+                <th className="p-3 font-medium border-b border-gray-700">ID</th>
+                <th className="p-3 font-medium border-b border-gray-700 text-center">Guardia</th>
+                <th className="p-3 font-medium border-b border-gray-700">Creado</th>
+                <th className="p-3 font-medium border-b border-gray-700">Cerrado</th>
+                <th className="p-3 font-medium border-b border-gray-700">Ubicación</th>
+                <th className="p-3 font-medium border-b border-gray-700">Sector</th>
+                <th className="p-3 font-medium border-b border-gray-700">Interno</th>
+                <th className="p-3 font-medium border-b border-gray-700">Solicitante</th>
+                <th className="p-3 font-medium border-b border-gray-700">Técnico</th>
+                <th className="p-3 font-medium border-b border-gray-700">Categoría</th>
+                <th className="p-3 font-medium border-b border-gray-700">Urgencia</th>
+                <th className="p-3 font-medium border-b border-gray-700">Asistencia</th>
+                <th className="p-3 font-medium border-b border-gray-700">Descripción</th>
+                <th className="p-3 font-medium border-b border-gray-700">Solución</th>
+                <th className="p-3 font-medium border-b border-gray-700">Total</th>
+                <th className="p-3 font-medium border-b border-gray-700 text-center">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-200">
               {ticketsFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-20 text-center text-gray-400 italic font-medium">
+                  <td colSpan={16} className="p-8 text-center text-gray-500">
                     No hay registros coincidentes.
                   </td>
                 </tr>
@@ -119,98 +129,113 @@ export default function HistorialPage() {
                 ticketsFiltrados.map((t) => {
                   const descAbierta = descripcionesAbiertas.includes(t.id);
                   const logsAbiertosFila = logsAbiertos === t.id;
+                  const esEliminado = t.estado === "ELIMINADO";
 
                   return (
                     <React.Fragment key={t.id}>
-                      <tr className={`hover:bg-slate-50 transition-colors ${t.es_guardia ? 'bg-red-50/30' : ''}`}>
-                        <td className="p-4 text-[10px] font-bold text-slate-400">#{t.id}</td>
-                        <td className="p-4 text-[10px] text-gray-500 font-mono italic">
-                          {new Date(t.fecha_creacion).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                        </td>
-                        <td className="p-4 text-[10px] text-gray-500 font-mono italic">
-                          {new Date(t.fecha_cierre).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                        </td>
-                        <td className="p-4">
-                          <span className="font-black text-xs text-slate-700 leading-tight uppercase tracking-tighter">{t.sector}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-[9px] font-black text-emerald-700 uppercase">{t.category?.name || "Gral"}</span>
-                        </td>
+                      {/* Aplicamos estilos grises si el ticket está ELIMINADO */}
+                      <tr className={`hover:bg-gray-50 transition-colors ${
+                        esEliminado ? 'bg-gray-200/60 opacity-60 text-gray-400' : 
+                        t.es_guardia ? 'bg-red-50/50 text-gray-800' : 
+                        t.destacado ? 'bg-amber-50/50 text-gray-800' : 'text-gray-800'
+                      }`}>
                         
-                        <td className="p-4 align-top">
-                          <div className="flex flex-col">
-                            <p className={`text-[11px] text-gray-600 leading-snug break-words ${!descAbierta ? 'truncate line-clamp-1' : 'whitespace-normal'}`}>
-                              "{t.descripcion}"
-                            </p>
-                            <button 
-                              onClick={() => alternarDescripcion(t.id)}
-                              className="text-blue-600 text-[8px] font-black uppercase mt-1 hover:underline w-fit"
-                            >
-                              {descAbierta ? 'Ver menos -' : 'Ver más +'}
-                            </button>
+                        <td className="p-3 align-top font-medium">#{t.id}</td>
+
+                        <td className="p-3 text-center align-top">
+                          {t.es_guardia ? "Sí" : "-"}
+                        </td>
+
+                        <td className="p-3 align-top">{formatearFecha(t.fecha_creacion)}</td>
+                        <td className="p-3 align-top">{formatearFecha(t.fecha_cierre)}</td>
+                        <td className="p-3 align-top">{obtenerNombreUbicacion(t.ubicacion)}</td>
+                        <td className="p-3 align-top font-medium">{t.sector}</td>
+                        <td className="p-3 align-top">{t.interno || "-"}</td>
+                        <td className="p-3 align-top">{t.usuario_solicita}</td>
+                        <td className="p-3 align-top">{t.tecnico}</td>
+                        <td className="p-3 align-top">{t.category?.name || "Gral"}</td>
+                        <td className="p-3 align-top">{t.urgencia}</td>
+                        <td className="p-3 align-top">{t.tipo_asistencia}</td>
+                        
+                        <td className="p-3 max-w-xs align-top">
+                          <div className={descAbierta ? "whitespace-normal" : "line-clamp-2"}>
+                            {t.descripcion}
                           </div>
+                          {t.descripcion?.length > 50 && (
+                            <button onClick={() => alternarDescripcion(t.id)} className="text-blue-600 text-xs mt-1 hover:underline block">
+                              {descAbierta ? 'Ver menos' : 'Ver más'}
+                            </button>
+                          )}
                         </td>
 
-                        <td className="p-4 font-mono font-black text-blue-700 text-[10px]">
-                          {calcularDuracion(t.fecha_creacion, t.fecha_cierre)}
+                        <td className="p-3 max-w-xs align-top">
+                          <div className={descAbierta ? "whitespace-normal" : "line-clamp-2"}>
+                            {esEliminado ? "[TICKET ELIMINADO SIN SOLUCIÓN]" : (t.solucion || "-")}
+                          </div>
+                          {t.solucion?.length > 50 && !esEliminado && (
+                            <button onClick={() => alternarDescripcion(t.id)} className="text-blue-600 text-xs mt-1 hover:underline block">
+                              {descAbierta ? 'Ver menos' : 'Ver más'}
+                            </button>
+                          )}
                         </td>
 
-                        <td className="p-4">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <button 
-                              onClick={() => setLogsAbiertos(logsAbiertosFila ? null : t.id)}
-                              className={`p-1.5 rounded-md transition-all border ${logsAbiertosFila ? 'bg-blue-600 border-blue-700 text-white' : 'bg-white border-gray-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200'}`}
-                              title="Trayectoria"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <td className="p-3 align-top">{calcularDuracion(t.fecha_creacion, t.fecha_cierre)}</td>
+
+                        <td className="p-3 align-top">
+                          <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            {!esEliminado && (
+                              <>
+                                <button onClick={() => manejarDestacado(t.id, t.destacado)} className={`p-1.5 rounded-md border transition-colors shadow-sm ${t.destacado ? 'bg-amber-50 border-amber-300 text-amber-500' : 'bg-white border-gray-200 text-slate-400 hover:text-amber-500'}`} title={t.destacado ? "Quitar destacado" : "Destacar"}>
+                                  <svg xmlns="http://www.w3.org/2000/svg" fill={t.destacado ? "#f59e0b" : "none"} viewBox="0 0 24 24" strokeWidth={1.5} stroke={t.destacado ? "#f59e0b" : "currentColor"} className="w-4 h-4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499c.151-.316.604-.316.756 0l2.22 4.502 4.968.721c.354.051.496.489.24.741l-3.597 3.507 1.056 4.951c.075.354-.297.625-.615.457L12 15.698l-4.444 2.333c-.318.168-.693-.103-.615-.457l1.056-4.951-3.597-3.507c-.256-.252-.114-.69.24-.741l4.968-.721 2.22-4.502Z" />
+                                  </svg>
+                                </button>
+
+                                <Link href={`/nuevo?edit=${t.id}`} className="p-1.5 rounded-md bg-white border border-gray-200 text-slate-500 shadow-sm hover:text-blue-600 hover:bg-gray-50 transition-colors" title="Editar">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
+                                  </svg>
+                                </Link>
+                              </>
+                            )}
+
+                            <button onClick={() => setLogsAbiertos(logsAbiertosFila ? null : t.id)} className={`p-1.5 rounded-md border shadow-sm transition-colors ${logsAbiertosFila ? 'bg-blue-600 border-blue-700 text-white' : 'bg-white border-gray-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600'}`} title="Trayectoria">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                               </svg>
                             </button>
 
-                            <Link href={`/nuevo?edit=${t.id}`} className="p-1.5 bg-white border border-gray-200 text-slate-500 rounded-md hover:text-blue-600">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                              </svg>
-                            </Link>
-
-                            <button onClick={() => manejarReabrir(t.id)} className="p-1.5 bg-white border border-gray-200 text-slate-500 rounded-md hover:text-emerald-600">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <button onClick={() => manejarReabrir(t.id)} className="p-1.5 rounded-md bg-white border border-gray-200 text-slate-500 shadow-sm hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Reabrir">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
                               </svg>
                             </button>
 
-                            <button onClick={() => confirmarEliminar(t.id)} className="p-1.5 bg-white border border-gray-200 text-slate-500 rounded-md hover:text-red-600">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
+                            {!esEliminado && (
+                              <button onClick={() => confirmarEliminar(t.id)} className="p-1.5 rounded-md bg-white border border-gray-200 text-slate-500 shadow-sm hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
 
-                      {/* TRAYECTORIA MÁS ANCHA Y CENTRADA */}
+                      {/* TRAYECTORIA */}
                       {logsAbiertosFila && (
-                        <tr className="bg-slate-50 animate-in fade-in slide-in-from-top-1 duration-200">
-                          <td colSpan={8} className="p-6 border-b border-gray-200">
-                            <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                              <p className="text-[10px] font-black uppercase text-slate-400 mb-6 tracking-widest border-b pb-2 flex justify-between">
-                                Trayectoria completa del ticket <span>ID: #{t.id}</span>
+                        <tr className="bg-gray-50">
+                          <td colSpan={16} className="p-6 border-b border-gray-200">
+                            <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg border border-gray-200">
+                              <p className="font-semibold text-gray-700 mb-4 border-b pb-2">
+                                Trayectoria del ticket #{t.id}
                               </p>
-                              <div className="space-y-4 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
+                              <div className="space-y-3">
                                 {t.logs?.map((log: any) => (
-                                  <div key={log.id} className="flex items-center gap-6 relative pl-10">
-                                    <div className="absolute left-1.5 w-2.5 h-2.5 rounded-full bg-blue-500 border-2 border-white shadow-sm"></div>
-                                    <span className="text-[11px] font-bold text-slate-500 w-32 shrink-0 italic">{formatearHoraLog(log.fecha)}</span>
-                                    <span className={`text-[10px] font-black px-3 py-1 rounded-md uppercase min-w-[100px] text-center ${
-                                      log.estado === 'CREADO' ? 'bg-blue-100 text-blue-700' :
-                                      log.estado === 'FINALIZADO' || log.estado === 'RESUELTO' ? 'bg-emerald-100 text-emerald-700' :
-                                      log.estado === 'PAUSADO' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'
-                                    }`}>
-                                      {log.estado}
-                                    </span>
-                                    <span className="text-sm text-gray-600 italic">
-                                      Acción realizada por: <span className="font-bold text-slate-800 not-italic">{log.tecnico}</span>
-                                    </span>
+                                  <div key={log.id} className="flex items-center gap-4 text-sm text-gray-600">
+                                    <span className="w-32">{formatearFecha(log.fecha)}</span>
+                                    <span className="font-medium w-24">{log.estado}</span>
+                                    <span>Por: {log.tecnico}</span>
                                   </div>
                                 ))}
                               </div>

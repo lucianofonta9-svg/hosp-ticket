@@ -21,6 +21,8 @@ export default function NuevoTicket() {
 
   // ESTADOS
   const [fechaHora, setFechaHora] = useState(obtenerFechaHoraLocalActual());
+  const [fechaHoraCierre, setFechaHoraCierre] = useState(obtenerFechaHoraLocalActual()); 
+  const [tieneCierre, setTieneCierre] = useState(false); 
   const [sectorSeleccionado, setSectorSeleccionado] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [ubicacionId, setUbicacionId] = useState<number | "">(""); 
@@ -29,6 +31,7 @@ export default function NuevoTicket() {
   const [solucion, setSolucion] = useState("");
   const [esResolucionInmediata, setEsResolucionInmediata] = useState(false);
   const [esGuardia, setEsGuardia] = useState(false);
+  const [destacado, setDestacado] = useState(false); 
   const [urgencia, setUrgencia] = useState<"BAJA" | "MEDIA" | "CRITICA">("BAJA");
   const [tipoAsistencia, setTipoAsistencia] = useState<"PRESENCIAL" | "REMOTA">("PRESENCIAL");
   
@@ -46,9 +49,12 @@ export default function NuevoTicket() {
     setSolucion("");
     setEsGuardia(false);
     setEsResolucionInmediata(false);
+    setTieneCierre(false);
+    setDestacado(false);
     setUrgencia("BAJA");
     setTipoAsistencia("PRESENCIAL");
     setFechaHora(obtenerFechaHoraLocalActual());
+    setFechaHoraCierre(obtenerFechaHoraLocalActual());
   };
 
   const sectoresFiltrados = useMemo(() => {
@@ -72,6 +78,7 @@ export default function NuevoTicket() {
           setDescripcion(ticket.descripcion);
           setSolucion(ticket.solucion || "");
           setEsGuardia(ticket.es_guardia);
+          setDestacado(ticket.destacado || false);
           setUrgencia(ticket.urgencia || "BAJA");
           setTipoAsistencia(ticket.tipo_asistencia || "PRESENCIAL");
 
@@ -79,6 +86,13 @@ export default function NuevoTicket() {
             const d = new Date(ticket.fecha_creacion);
             const tzOffset = d.getTimezoneOffset() * 60000;
             setFechaHora(new Date(d.getTime() - tzOffset).toISOString().slice(0, 16));
+          }
+
+          if (ticket.fecha_cierre) {                                            
+            setTieneCierre(true);
+            const d = new Date(ticket.fecha_cierre);
+            const tzOffset = d.getTimezoneOffset() * 60000;
+            setFechaHoraCierre(new Date(d.getTime() - tzOffset).toISOString().slice(0, 16));
           }
         }
         setCargando(false);
@@ -123,10 +137,12 @@ export default function NuevoTicket() {
       descripcion,
       solucion,
       fechaManual: fechaHora,
+      fechaCierreManual: (esResolucionInmediata || tieneCierre || solucion.trim() !== "") ? fechaHoraCierre : undefined, 
       esResolucionInmediata,
       urgencia,
       tipoAsistencia,
-      esGuardia
+      esGuardia,
+      destacado 
     };
 
     const res = editId ? await actualizarTicket(editId, datos) : await registrarTicket(datos);
@@ -152,7 +168,7 @@ export default function NuevoTicket() {
         {/* GRUPO 1: FECHA - USUARIO SOLICITANTE */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Fecha y Hora</label>
+            <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Fecha y Hora de Apertura</label>
             <input 
               type="datetime-local" 
               value={fechaHora}
@@ -232,7 +248,7 @@ export default function NuevoTicket() {
           </div>
         </div>
             
-        {/* GRUPO 4: CATEGORÍA DEL PROBLEMA (OCUPA EL 100% DE LA FILA) */}
+        {/* GRUPO 4: CATEGORÍA DEL PROBLEMA */}
         <div>
           <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Categoría del Problema</label>
           {!mostrandoInputCat ? (
@@ -292,6 +308,19 @@ export default function NuevoTicket() {
             placeholder="Escriba los detalles de la solución aquí si ya fue resuelto..."
           />
         </div>
+
+        {/* CAMPO FECHA DE CIERRE MANUAL */}
+        {(esResolucionInmediata || tieneCierre || solucion.trim() !== "") && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+            <label className="block text-xs font-bold uppercase text-gray-700 mb-1">Fecha y Hora de Cierre (Manual)</label>
+            <input 
+              type="datetime-local" 
+              value={fechaHoraCierre}
+              onChange={(e) => setFechaHoraCierre(e.target.value)}
+              className="w-full p-2 border rounded bg-white border-emerald-400 focus:ring-2 focus:ring-emerald-500 outline-none font-medium text-slate-700"
+            />
+          </div>
+        )}
 
         {/* OPCIONES ESPECIALES */}
         <div className="flex justify-evenly gap-2 w-full pt-2">

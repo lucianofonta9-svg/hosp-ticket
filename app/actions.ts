@@ -18,9 +18,10 @@ export async function registrarTicket(datos: {
   descripcion: string;
   solucion?: string;             
   fechaManual: string; 
+  fechaCierreManual?: string;         // NUEVO
   esResolucionInmediata: boolean;
   esGuardia: boolean;
-  destacado: boolean;                 // NUEVO
+  destacado: boolean;                 
   urgencia: "BAJA" | "MEDIA" | "CRITICA";
   tipoAsistencia: "PRESENCIAL" | "REMOTA";
 }) {
@@ -33,6 +34,11 @@ export async function registrarTicket(datos: {
 
     const nombreTecnico = session.user.name;
     const fechaCreacion = new Date(datos.fechaManual);
+    
+    // Si es resolución inmediata, usa la fecha de cierre manual o la del sistema
+    const fechaCierre = datos.esResolucionInmediata
+      ? (datos.fechaCierreManual ? new Date(datos.fechaCierreManual) : new Date())
+      : null;
 
     await prisma.ticket.create({
       data: {
@@ -44,12 +50,12 @@ export async function registrarTicket(datos: {
         descripcion: datos.descripcion,
         solucion: datos.solucion || null, 
         es_guardia: datos.esGuardia,
-        destacado: datos.destacado,         // NUEVO
+        destacado: datos.destacado,         
         urgencia: datos.urgencia,
         tipo_asistencia: datos.tipoAsistencia,
         estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
         fecha_creacion: fechaCreacion,    
-        fecha_cierre: datos.esResolucionInmediata ? new Date() : null,
+        fecha_cierre: fechaCierre,                                      // MODIFICADO
         tecnico: nombreTecnico,
         tecnico_cierre: datos.esResolucionInmediata ? nombreTecnico : null,
         logs: {
@@ -141,8 +147,13 @@ export async function finalizarTicket(id: number) {
 
 export async function obtenerHistorialTickets() {
   try {
+    // Traemos tanto los RESUELTO como los ELIMINADO
     const tickets = await prisma.ticket.findMany({
-      where: { estado: "RESUELTO" },
+      where: { 
+        estado: {
+          in: ["RESUELTO", "ELIMINADO"]
+        }
+      },
       include: {
         category: true,
         logs: { orderBy: { fecha: 'asc' } }
@@ -150,11 +161,18 @@ export async function obtenerHistorialTickets() {
       orderBy: { fecha_cierre: 'desc' },
     });
 
-    return tickets.map(t => ({
+    const ticketsMapeados = tickets.map(t => ({
       ...t,
       fecha_creacion: t.fecha_creacion.toISOString(),
       fecha_cierre: t.fecha_cierre ? t.fecha_cierre.toISOString() : null,
     }));
+
+    // Ordenamos en memoria para dejar todos los ELIMINADO estrictamente al final
+    return ticketsMapeados.sort((a, b) => {
+      if (a.estado === "ELIMINADO" && b.estado !== "ELIMINADO") return 1;
+      if (a.estado !== "ELIMINADO" && b.estado === "ELIMINADO") return -1;
+      return 0; 
+    });
   } catch (error) {
     console.error("Error al obtener historial:", error);
     return [];
@@ -167,9 +185,16 @@ export async function obtenerTicketPorId(id: number) {
     include: { logs: true } 
   });
 }
-
 export async function actualizarTicket(id: number, data: any) {
   try {
+    const session = await auth();
+
+    if (!session?.user?.name) {
+      return { success: false, error: "Usuario no autenticado" };
+    }
+
+    const nombreTecnico = session.user.name;
+
     const datosActualizacion: any = {
       sector: data.sector,
       interno: data.interno,
@@ -179,19 +204,30 @@ export async function actualizarTicket(id: number, data: any) {
       descripcion: data.descripcion,
       solucion: data.solucion || null,   
       es_guardia: data.esGuardia,
-      destacado: data.destacado,         // NUEVO
+      destacado: data.destacado,         
       urgencia: data.urgencia,          
-      tipo_asistencia: data.tipoAsistencia 
+      tipo_asistencia: data.tipoAsistencia,
+      logs: {
+        create: {
+          estado: "EDITADO",
+          tecnico: nombreTecnico
+        }
+      }
     };
 
     if (data.fechaManual) {              
       datosActualizacion.fecha_creacion = new Date(data.fechaManual);
     }
 
+    if (data.fechaCierreManual) {                                       // NUEVO
+      datosActualizacion.fecha_cierre = new Date(data.fechaCierreManual);
+    }
+
     await prisma.ticket.update({
       where: { id },
       data: datosActualizacion
     });
+    
     revalidatePath('/');
     revalidatePath('/historial');
     return { success: true };
@@ -203,14 +239,30 @@ export async function actualizarTicket(id: number, data: any) {
 
 export async function eliminarTicket(id: number) {
   try {
-    await prisma.ticket.delete({
-      where: { id }
+    const session = await auth();
+    const nombreTecnico = session?.user?.name || "Sistema";
+
+    // En lugar de delete, hacemos un update del estado y registramos la fecha de cierre
+    await prisma.ticket.update({
+      where: { id },
+      data: {
+        estado: "ELIMINADO",
+        fecha_cierre: new Date(),
+        tecnico_cierre: nombreTecnico,
+        logs: {
+          create: {
+            estado: "ELIMINADO",
+            tecnico: nombreTecnico
+          }
+        }
+      }
     });
+
     revalidatePath('/');
     revalidatePath('/historial');
     return { success: true };
   } catch (error) {
-    console.error("Error al eliminar:", error);
+    console.error("Error al eliminar lógicamente el ticket:", error);
     return { success: false };
   }
 }
