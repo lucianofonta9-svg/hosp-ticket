@@ -20,3 +20,5 @@ export default function BotonNav({ href, label }: { href: string; label: string 
     </Link>
   );
 }
+
+//recordatorio: cambiar funcion edit 
