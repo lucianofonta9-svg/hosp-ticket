@@ -5,32 +5,35 @@ import BotonNav from './BotonNav';
 export default async function Navbar() {
   const session = await auth();
 
-  // no se renderiza el navbar si no hay una sesion activa
   if (!session) return null;
 
   return (
     <nav className="bg-slate-900 text-white shadow-md border-b border-slate-700">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-16 w-full">
           
-          {/* logo */}
-          <Link href="/" className="flex items-center gap-1 group shrink-0">
-            <span className="font-bold tracking-tight text-lg text-white">HOSP</span>
-            <div className="bg-blue-100 px-1 py-0.5 rounded-lg group-hover:bg-blue-300 transition-colors text-slate-900">
-              <span className="font-black text-lg">TICKET</span>
-            </div>
-          </Link>
-
-          {/* navegación */}
-          <div className="flex gap-8 items-center">
-            <BotonNav href="/" label="Pendientes" />
-            <BotonNav href="/historial" label="Historial" />
-            <BotonNav href="/nuevo" label="Nuevo Ticket" />
+          {/* Lado izquierdo: logo */}
+          <div className="w-1/3 flex justify-start">
+            <Link href="/" className="flex items-center gap-1 group shrink-0">
+              <span className="font-bold tracking-tight text-lg text-white">HOSP</span>
+              <div className="bg-blue-100 px-1 py-0.5 rounded-lg group-hover:bg-blue-300 transition-colors text-slate-900">
+                <span className="font-black text-lg">TICKET</span>
+              </div>
+            </Link>
           </div>
 
-          {/* usuario y logout */}
-          <div className="flex items-center gap-4 pl-6 border-l border-slate-700 shrink-0">
-            <div className="text-right hidden sm:block">
+          {/* Centro: Contenedor de Píldora Oscura */}
+          <div className="w-1/3 flex justify-center">
+            <div className="flex items-center bg-slate-950 p-1.5 rounded-full border border-slate-800 shadow-inner gap-1">
+              <BotonNav href="/" label="Pendientes" />
+              <BotonNav href="/historial" label="Historial" />
+              <BotonNav href="/nuevo" label="Nuevo Ticket" />
+            </div>
+          </div>
+
+          {/* Lado derecho: usuario y logout */}
+          <div className="w-1/3 flex items-center justify-end gap-4 shrink-0">
+            <div className="text-right hidden sm:block border-r border-slate-700 pr-4">
               <p className="text-[10px] font-bold text-blue-400 uppercase leading-none">Técnico</p>
               <p className="text-sm font-medium text-slate-200">{session.user?.name}</p>
             </div>
