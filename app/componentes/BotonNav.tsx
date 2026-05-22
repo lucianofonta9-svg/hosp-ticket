@@ -10,15 +10,13 @@ export default function BotonNav({ href, label }: { href: string; label: string 
   return (
     <Link
       href={href}
-      className={`px-5 py-2 text-xs font-black uppercase rounded-full transition-all duration-200 ${
+      className={`px-5 py-2 text-xs font-black uppercase rounded-full transition-all duration-300 ease-out ${
         isActive
           ? 'bg-slate-800 text-blue-400 shadow-sm scale-100'
-          : 'text-slate-500 hover:bg-slate-800 hover:text-slate-300 active:scale-95'
+          : 'text-gray-200 hover:bg-slate-800/50 hover:text-slate-300 active:scale-95'
       }`}
     >
       {label}
     </Link>
   );
 }
-
-//recordatorio: cambiar funcion edit 

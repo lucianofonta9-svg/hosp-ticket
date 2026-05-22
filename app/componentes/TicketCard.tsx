@@ -68,11 +68,18 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
     }).format(new Date(fecha));
   };
   
+  // NUEVO: Función para determinar el color del borde según la urgencia
+  const obtenerColorUrgencia = (urgencia: string, esGuardia: boolean) => {
+    if (urgencia === "CRITICA") return "border-red-500";
+    if (urgencia === "MEDIA") return "border-amber-500";
+    if (urgencia === "BAJA") return "border-emerald-500";
+    // Si no tiene urgencia o es un ticket de guardia genérico, usa rojo o azul por defecto
+    return esGuardia ? "border-red-600" : "border-blue-500";
+  };
 
   return (
     <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10 transition-all ${
-      esPausado ? 'bg-gray-100 border-gray-400 opacity-80' : 
-      ticket.es_guardia ? 'bg-white border-red-600' : 'bg-white border-blue-500'
+      esPausado ? 'bg-gray-100 border-gray-400 opacity-80' : `bg-white ${obtenerColorUrgencia(ticket.urgencia, ticket.es_guardia)}`
     } ${expandido || mostrarLogs ? 'h-auto' : 'h-70'}`}>
       
       <div className="w-full">

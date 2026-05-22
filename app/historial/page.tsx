@@ -74,14 +74,14 @@ export default function HistorialPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 font-sans">
-      <div className="max-w-[1600px] mx-auto w-full">
+    <div className="min-h-screen bg-gray-200 p-6">
+      <div className="max-w-7xl mx-auto">
         
-        <div className="flex justify-between items-center mb-6 border-b pb-4 border-gray-300">
-          <h1 className="text-2xl font-semibold text-gray-800">
+        <div className="flex justify-between items-center mb-8 border-b pb-4 border-gray-300">
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight">
             Historial de Soporte
           </h1>
-          <div className="bg-white px-4 py-2 rounded-lg shadow-sm border text-sm text-gray-600">
+          <div className="bg-white px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-gray-500">
             {ticketsFiltrados.length} Registros
           </div>
         </div>
@@ -90,39 +90,39 @@ export default function HistorialPage() {
           <input 
             type="text" 
             placeholder="Buscar..." 
-            className="w-full p-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm"
+            className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
             value={filtroGeneral}
             onChange={(e) => setFiltroGeneral(e.target.value)}
           />
         </div>
   
-        <div className="bg-white shadow-md rounded-xl border border-gray-200 overflow-x-auto">
+        <div className="bg-white shadow-sm rounded-xl border border-gray-300 overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-max text-sm">
             <thead>
-              <tr className="bg-gray-800 text-gray-100">
-                <th className="p-3 font-medium border-b border-gray-700">ID</th>
-                <th className="p-3 font-medium border-b border-gray-700 text-center">Guardia</th>
-                <th className="p-3 font-medium border-b border-gray-700">Creado</th>
-                <th className="p-3 font-medium border-b border-gray-700">Cerrado</th>
-                <th className="p-3 font-medium border-b border-gray-700">Ubicación</th>
-                <th className="p-3 font-medium border-b border-gray-700">Sector</th>
-                <th className="p-3 font-medium border-b border-gray-700">Interno</th>
-                <th className="p-3 font-medium border-b border-gray-700">Solicitante</th>
-                <th className="p-3 font-medium border-b border-gray-700">Técnico</th>
-                <th className="p-3 font-medium border-b border-gray-700">Categoría</th>
-                <th className="p-3 font-medium border-b border-gray-700">Urgencia</th>
-                <th className="p-3 font-medium border-b border-gray-700">Asistencia</th>
-                <th className="p-3 font-medium border-b border-gray-700">Descripción</th>
-                <th className="p-3 font-medium border-b border-gray-700">Solución</th>
-                <th className="p-3 font-medium border-b border-gray-700">Total</th>
-                <th className="p-3 font-medium border-b border-gray-700 text-center">Acciones</th>
+              <tr className="bg-slate-800 text-white">
+                <th className="p-3 font-bold border-b border-slate-900">ID</th>
+                <th className="p-3 font-bold border-b border-slate-900 text-center">Guardia</th>
+                <th className="p-3 font-bold border-b border-slate-900">Creado</th>
+                <th className="p-3 font-bold border-b border-slate-900">Cerrado</th>
+                <th className="p-3 font-bold border-b border-slate-900">Ubicación</th>
+                <th className="p-3 font-bold border-b border-slate-900">Sector</th>
+                <th className="p-3 font-bold border-b border-slate-900">Interno</th>
+                <th className="p-3 font-bold border-b border-slate-900">Solicitante</th>
+                <th className="p-3 font-bold border-b border-slate-900">Técnico</th>
+                <th className="p-3 font-bold border-b border-slate-900">Categoría</th>
+                <th className="p-3 font-bold border-b border-slate-900">Urgencia</th>
+                <th className="p-3 font-bold border-b border-slate-900">Asistencia</th>
+                <th className="p-3 font-bold border-b border-slate-900">Descripción</th>
+                <th className="p-3 font-bold border-b border-slate-900">Solución</th>
+                <th className="p-3 font-bold border-b border-slate-900">Total</th>
+                <th className="p-3 font-bold border-b border-slate-900 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {ticketsFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={16} className="p-8 text-center text-gray-500">
-                    No hay registros coincidentes.
+                  <td colSpan={16} className="text-center py-20">
+                    <p className="text-gray-400 text-lg italic">No hay registros coincidentes.</p>
                   </td>
                 </tr>
               ) : (
@@ -133,24 +133,23 @@ export default function HistorialPage() {
 
                   return (
                     <React.Fragment key={t.id}>
-                      {/* Aplicamos estilos grises si el ticket está ELIMINADO */}
                       <tr className={`hover:bg-gray-50 transition-colors ${
                         esEliminado ? 'bg-gray-200/60 opacity-60 text-gray-400' : 
-                        t.es_guardia ? 'bg-red-50/50 text-gray-800' : 
-                        t.destacado ? 'bg-amber-50/50 text-gray-800' : 'text-gray-800'
+                        t.es_guardia ? 'bg-red-50/50 text-slate-800' : 
+                        t.destacado ? 'bg-amber-50/50 text-slate-800' : 'text-slate-800'
                       }`}>
                         
-                        <td className="p-3 align-top font-medium">#{t.id}</td>
+                        <td className="p-3 align-top font-bold">#{t.id}</td>
 
-                        <td className="p-3 text-center align-top">
+                        <td className="p-3 text-center align-top font-medium">
                           {t.es_guardia ? "Sí" : "-"}
                         </td>
 
                         <td className="p-3 align-top">{formatearFecha(t.fecha_creacion)}</td>
                         <td className="p-3 align-top">{formatearFecha(t.fecha_cierre)}</td>
                         <td className="p-3 align-top">{obtenerNombreUbicacion(t.ubicacion)}</td>
-                        <td className="p-3 align-top font-medium">{t.sector}</td>
-                        <td className="p-3 align-top">{t.interno || "-"}</td>
+                        <td className="p-3 align-top font-bold">{t.sector}</td>
+                        <td className="p-3 align-top font-medium">{t.interno || "-"}</td>
                         <td className="p-3 align-top">{t.usuario_solicita}</td>
                         <td className="p-3 align-top">{t.tecnico}</td>
                         <td className="p-3 align-top">{t.category?.name || "Gral"}</td>
@@ -162,7 +161,7 @@ export default function HistorialPage() {
                             {t.descripcion}
                           </div>
                           {t.descripcion?.length > 50 && (
-                            <button onClick={() => alternarDescripcion(t.id)} className="text-blue-600 text-xs mt-1 hover:underline block">
+                            <button onClick={() => alternarDescripcion(t.id)} className="text-blue-600 font-medium text-xs mt-1 hover:underline block">
                               {descAbierta ? 'Ver menos' : 'Ver más'}
                             </button>
                           )}
@@ -173,13 +172,13 @@ export default function HistorialPage() {
                             {esEliminado ? "[TICKET ELIMINADO SIN SOLUCIÓN]" : (t.solucion || "-")}
                           </div>
                           {t.solucion?.length > 50 && !esEliminado && (
-                            <button onClick={() => alternarDescripcion(t.id)} className="text-blue-600 text-xs mt-1 hover:underline block">
+                            <button onClick={() => alternarDescripcion(t.id)} className="text-blue-600 font-medium text-xs mt-1 hover:underline block">
                               {descAbierta ? 'Ver menos' : 'Ver más'}
                             </button>
                           )}
                         </td>
 
-                        <td className="p-3 align-top">{calcularDuracion(t.fecha_creacion, t.fecha_cierre)}</td>
+                        <td className="p-3 align-top font-medium">{calcularDuracion(t.fecha_creacion, t.fecha_cierre)}</td>
 
                         <td className="p-3 align-top">
                           <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
@@ -226,15 +225,15 @@ export default function HistorialPage() {
                       {logsAbiertosFila && (
                         <tr className="bg-gray-50">
                           <td colSpan={16} className="p-6 border-b border-gray-200">
-                            <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg border border-gray-200">
-                              <p className="font-semibold text-gray-700 mb-4 border-b pb-2">
+                            <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                              <p className="font-black text-slate-800 mb-4 border-b pb-2">
                                 Trayectoria del ticket #{t.id}
                               </p>
                               <div className="space-y-3">
                                 {t.logs?.map((log: any) => (
-                                  <div key={log.id} className="flex items-center gap-4 text-sm text-gray-600">
+                                  <div key={log.id} className="flex items-center gap-4 text-sm text-slate-700">
                                     <span className="w-32">{formatearFecha(log.fecha)}</span>
-                                    <span className="font-medium w-24">{log.estado}</span>
+                                    <span className="font-bold w-24 text-slate-800">{log.estado}</span>
                                     <span>Por: {log.tecnico}</span>
                                   </div>
                                 ))}
