@@ -16,13 +16,14 @@ export default async function Navbar() {
           <div className="w-1/3 flex justify-start">
             <Link href="/" className="flex items-center gap-1.5 group shrink-0">
               <span className="font-bold tracking-tight text-xl">HOSP</span>
-              <div className="bg-gray-200 px-1.5 py-1 rounded-lg group-hover:bg-blue-300 transition-colors text-slate-900">
+              <div className="bg-slate-700 px-1.5 py-1 rounded-lg group-hover:bg-slate-200 group-hover:text-slate-800 transition-colors text-slate-200">
                 <span className="font-black text-xl">TICKET</span>
               </div>
             </Link>
           </div>
 
           {/* Centro: Contenedor de Píldora Oscura */}
+       
           <div className="w-1/3 flex justify-center text-lg">
             <div className="flex items-center bg-slate-950 p-1.5 text-gray-200 rounded-full border border-slate-800 shadow-inner gap-1">
               <BotonNav href="/" label="Pendientes" />
@@ -33,15 +34,17 @@ export default async function Navbar() {
 
           {/* Lado derecho: usuario y logout */}
           <div className="w-1/3 flex items-center justify-end shrink-0">
-            <div className="text-right hidden sm:block border-r border-slate-700 pr-4">
-              <p className="text-xs font-bold text-blue-400 uppercase leading-none">Técnico</p>
-              <p className="text-l font-medium text-gray-200 text-bold">{session.user?.name}</p>
+            <div className="text-right hidden sm:block border-r border-slate-800 pr-4">
+              <p className="inline-block px-2 py-1 mb-1 text-[10px] font-bold bg-slate-700 rounded-full text-gray-200 uppercase leading-none">
+                Usuario
+              </p>
+              <p className="text-l text-gray-200 font-bold">{session.user?.name}</p>
             </div>
 
             <form action={async () => { "use server"; await signOut(); }}>
               <button 
                 type="submit"
-                className="flex items-center justify-center gap-0.5 p-2 text-gray-200 hover:text-red-400 hover:bg-slate-800 rounded-full transition-all"
+                className="flex items-center justify-center ml-1 gap-0.5 p-2 text-gray-200 hover:text-red-400 hover:bg-slate-800 rounded-full transition-all"
                 title="Cerrar Sesión"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 m-0.5">

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { obtenerHistorialTickets, eliminarTicket, reabrirTicket, alternarDestacadoTicket } from '../actions';
+import { obtenerHistorialTickets, eliminarTicket, reabrirTicket, alternarDestacadoTicket, obtenerCategorias } from '../actions';
 import { UBICACIONES } from '../../constants/ubicaciones';
 
 export default function HistorialPage() {
@@ -10,13 +10,45 @@ export default function HistorialPage() {
   const [logsAbiertos, setLogsAbiertos] = useState<number | null>(null);
   const [descripcionesAbiertas, setDescripcionesAbiertas] = useState<number[]>([]);
 
+  // Estados para los filtros
+  const [categorias, setCategorias] = useState<any[]>([]);
+  const [filtroUbicacion, setFiltroUbicacion] = useState("");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [filtroUrgencia, setFiltroUrgencia] = useState("");
+  const [filtroSector, setFiltroSector] = useState("");
+  const [filtroAsistencia, setFiltroAsistencia] = useState("");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
+
+  // Estados para la paginación
+  const [paginaActual, setPaginaActual] = useState(1);
+  const registrosPorPagina = 50;
+
   const cargarTickets = () => {
     obtenerHistorialTickets().then(setTickets);
   };
 
   useEffect(() => {
     cargarTickets();
+    obtenerCategorias().then(setCategorias);
   }, []);
+
+  // Resetear a la página 1 cuando cambie cualquier filtro
+  useEffect(() => {
+    setPaginaActual(1);
+  }, [filtroGeneral, filtroUbicacion, filtroCategoria, filtroUrgencia, filtroSector, filtroAsistencia, fechaInicio, fechaFin]);
+
+  const limpiarFiltros = () => {
+    setFiltroGeneral("");
+    setFiltroUbicacion("");
+    setFiltroCategoria("");
+    setFiltroUrgencia("");
+    setFiltroSector("");
+    setFiltroAsistencia("");
+    setFechaInicio("");
+    setFechaFin("");
+    setPaginaActual(1);
+  };
 
   const confirmarEliminar = async (id: number) => {
     if (window.confirm("¿Estás seguro de eliminar este registro? Pasará al estado de Eliminado.")) {
@@ -49,11 +81,44 @@ export default function HistorialPage() {
     return lugar ? lugar.nombre : "Desconocida";
   };
 
-  const ticketsFiltrados = tickets.filter(t => 
-    t.sector.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
-    t.descripcion.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
-    (t.solucion && t.solucion.toLowerCase().includes(filtroGeneral.toLowerCase())) ||
-    t.tecnico.toLowerCase().includes(filtroGeneral.toLowerCase())
+  const sectoresUnicos = Array.from(new Set(tickets.map(t => t.sector))).sort();
+
+  // 1. Filtrado de todos los datos
+  const ticketsFiltrados = tickets.filter(t => {
+    const coincideGeneral = filtroGeneral === "" || 
+      t.sector.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
+      t.descripcion.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
+      (t.solucion && t.solucion.toLowerCase().includes(filtroGeneral.toLowerCase())) ||
+      t.tecnico.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
+      (t.usuario_solicita && t.usuario_solicita.toLowerCase().includes(filtroGeneral.toLowerCase()));
+
+    const coincideUbicacion = filtroUbicacion === "" || t.ubicacion === filtroUbicacion;
+    const coincideCategoria = filtroCategoria === "" || (t.category && t.category.id.toString() === filtroCategoria);
+    const coincideUrgencia = filtroUrgencia === "" || t.urgencia === filtroUrgencia;
+    const coincideSector = filtroSector === "" || t.sector === filtroSector;
+    const coincideAsistencia = filtroAsistencia === "" || t.tipo_asistencia === filtroAsistencia;
+
+    let coincideFecha = true;
+    if (fechaInicio || fechaFin) {
+      const fechaTicket = new Date(t.fecha_creacion);
+      if (fechaInicio) {
+        const inicio = new Date(fechaInicio + "T00:00:00"); 
+        if (fechaTicket < inicio) coincideFecha = false;
+      }
+      if (fechaFin) {
+        const fin = new Date(fechaFin + "T23:59:59");
+        if (fechaTicket > fin) coincideFecha = false;
+      }
+    }
+
+    return coincideGeneral && coincideUbicacion && coincideCategoria && coincideUrgencia && coincideSector && coincideAsistencia && coincideFecha;
+  });
+
+  // 2. Paginación de los datos ya filtrados
+  const totalPaginas = Math.ceil(ticketsFiltrados.length / registrosPorPagina);
+  const ticketsPaginados = ticketsFiltrados.slice(
+    (paginaActual - 1) * registrosPorPagina,
+    paginaActual * registrosPorPagina
   );
 
   const calcularDuracion = (inicioStr: string, finStr: string | null) => {
@@ -79,21 +144,128 @@ export default function HistorialPage() {
         
         <div className="flex justify-between items-center mb-8 border-b pb-4 border-gray-300">
           <h1 className="text-3xl font-black text-slate-800 tracking-tight">
-            Historial de Soporte
+            Historial 🗄️
           </h1>
           <div className="bg-white px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-gray-500">
-            {ticketsFiltrados.length} Registros
+            {ticketsFiltrados.length} Registros 🗂️
           </div>
         </div>
 
-        <div className="w-full max-w-md mb-6">
-          <input 
-            type="text" 
-            placeholder="Buscar..." 
-            className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
-            value={filtroGeneral}
-            onChange={(e) => setFiltroGeneral(e.target.value)}
-          />
+        {/* PANEL DE FILTROS AL ESTILO NUEVO TICKET */}
+        <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-300 mb-8 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <div className="col-span-1 md:col-span-2 lg:col-span-2">
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Buscar texto</label>
+              <input 
+                type="text" 
+                placeholder="Sector, descripción, técnico, solicitante o solución..." 
+                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                value={filtroGeneral}
+                onChange={(e) => setFiltroGeneral(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Desde</label>
+              <input 
+                type="date" 
+                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                value={fechaInicio}
+                onChange={(e) => setFechaInicio(e.target.value)}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Hasta</label>
+              <input 
+                type="date" 
+                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                value={fechaFin}
+                onChange={(e) => setFechaFin(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Efector</label>
+              <select 
+                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                value={filtroUbicacion}
+                onChange={(e) => setFiltroUbicacion(e.target.value)}
+              >
+                <option value="">Todas</option>
+                {UBICACIONES.map(u => (
+                  <option key={u.id} value={u.id}>{u.nombre}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Sector</label>
+              <select 
+                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                value={filtroSector}
+                onChange={(e) => setFiltroSector(e.target.value)}
+              >
+                <option value="">Todos</option>
+                {sectoresUnicos.map(sector => (
+                  <option key={sector} value={sector}>{sector}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Categoría</label>
+              <select 
+                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                value={filtroCategoria}
+                onChange={(e) => setFiltroCategoria(e.target.value)}
+              >
+                <option value="">Todas</option>
+                {categorias.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Urgencia</label>
+              <select 
+                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                value={filtroUrgencia}
+                onChange={(e) => setFiltroUrgencia(e.target.value)}
+              >
+                <option value="">Todas</option>
+                <option value="BAJA">Baja</option>
+                <option value="MEDIA">Media</option>
+                <option value="CRITICA">Crítica</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Asistencia</label>
+              <select 
+                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                value={filtroAsistencia}
+                onChange={(e) => setFiltroAsistencia(e.target.value)}
+              >
+                <option value="">Todas</option>
+                <option value="PRESENCIAL">Presencial</option>
+                <option value="REMOTA">Remota</option>
+              </select>
+            </div>
+
+          </div>
+
+          <div className="flex justify-end pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={limpiarFiltros}
+              className="px-6 py-3 bg-gray-100 text-slate-600 rounded-xl font-bold hover:bg-gray-200 transition-all uppercase text-xs tracking-widest border border-gray-300 shadow-sm"
+            >
+              Limpiar Filtros 🧹
+            </button>
+          </div>
         </div>
   
         <div className="bg-white shadow-sm rounded-xl border border-gray-300 overflow-x-auto">
@@ -119,14 +291,14 @@ export default function HistorialPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {ticketsFiltrados.length === 0 ? (
+              {ticketsPaginados.length === 0 ? (
                 <tr>
                   <td colSpan={16} className="text-center py-20">
                     <p className="text-gray-400 text-lg italic">No hay registros coincidentes.</p>
                   </td>
                 </tr>
               ) : (
-                ticketsFiltrados.map((t) => {
+                ticketsPaginados.map((t) => {
                   const descAbierta = descripcionesAbiertas.includes(t.id);
                   const logsAbiertosFila = logsAbiertos === t.id;
                   const esEliminado = t.estado === "ELIMINADO";
@@ -249,6 +421,30 @@ export default function HistorialPage() {
             </tbody>
           </table>
         </div>
+
+        {/* CONTROLES DE PAGINACIÓN */}
+        {totalPaginas > 1 && (
+          <div className="flex justify-between items-center mt-4 bg-white p-4 rounded-xl border border-gray-300 shadow-sm">
+            <button
+              disabled={paginaActual === 1}
+              onClick={() => setPaginaActual(prev => Math.max(prev - 1, 1))}
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Anterior
+            </button>
+            <span className="text-sm font-medium text-slate-700">
+              Página {paginaActual} de {totalPaginas}
+            </span>
+            <button
+              disabled={paginaActual === totalPaginas}
+              onClick={() => setPaginaActual(prev => Math.min(prev + 1, totalPaginas))}
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   );

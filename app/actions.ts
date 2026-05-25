@@ -6,8 +6,13 @@ import bcrypt from "bcrypt";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { auth } from "@/auth";
+import { DATOS_SECTORES } from '../constants/sectores'; 
 
-const prisma = new PrismaClient();
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
+
+const prisma = globalForPrisma.prisma ?? new PrismaClient();
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 export async function registrarTicket(datos: {
   sector: string;
@@ -18,7 +23,7 @@ export async function registrarTicket(datos: {
   descripcion: string;
   solucion?: string;             
   fechaManual: string; 
-  fechaCierreManual?: string;         // NUEVO
+  fechaCierreManual?: string;         
   esResolucionInmediata: boolean;
   esGuardia: boolean;
   destacado: boolean;                 
@@ -35,15 +40,20 @@ export async function registrarTicket(datos: {
     const nombreTecnico = session.user.name;
     const fechaCreacion = new Date(datos.fechaManual);
     
-    // Si es resolución inmediata, usa la fecha de cierre manual o la del sistema
     const fechaCierre = datos.esResolucionInmediata
       ? (datos.fechaCierreManual ? new Date(datos.fechaCierreManual) : new Date())
       : null;
 
+    // Busca el sector cruzando nombre y ID de ubicación, y une los internos con guion
+    const sectorEncontrado = DATOS_SECTORES.find(
+      s => s.nombre === datos.sector && s.ubicacionId === Number(datos.ubicacion)
+    );
+    const internosFormateados = sectorEncontrado?.interno?.join(" - ") || "";
+
     await prisma.ticket.create({
       data: {
         sector: datos.sector,
-        interno: datos.interno,
+        interno: internosFormateados, 
         categoryId: Number(datos.categoryId),
         ubicacion: datos.ubicacion,
         usuario_solicita: datos.usuarioSolicita,
@@ -55,7 +65,7 @@ export async function registrarTicket(datos: {
         tipo_asistencia: datos.tipoAsistencia,
         estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
         fecha_creacion: fechaCreacion,    
-        fecha_cierre: fechaCierre,                                      // MODIFICADO
+        fecha_cierre: fechaCierre,                                      
         tecnico: nombreTecnico,
         tecnico_cierre: datos.esResolucionInmediata ? nombreTecnico : null,
         logs: {
@@ -147,7 +157,6 @@ export async function finalizarTicket(id: number) {
 
 export async function obtenerHistorialTickets() {
   try {
-    // Traemos tanto los RESUELTO como los ELIMINADO
     const tickets = await prisma.ticket.findMany({
       where: { 
         estado: {
@@ -167,7 +176,6 @@ export async function obtenerHistorialTickets() {
       fecha_cierre: t.fecha_cierre ? t.fecha_cierre.toISOString() : null,
     }));
 
-    // Ordenamos en memoria para dejar todos los ELIMINADO estrictamente al final
     return ticketsMapeados.sort((a, b) => {
       if (a.estado === "ELIMINADO" && b.estado !== "ELIMINADO") return 1;
       if (a.estado !== "ELIMINADO" && b.estado === "ELIMINADO") return -1;
@@ -185,6 +193,7 @@ export async function obtenerTicketPorId(id: number) {
     include: { logs: true } 
   });
 }
+
 export async function actualizarTicket(id: number, data: any) {
   try {
     const session = await auth();
@@ -195,10 +204,18 @@ export async function actualizarTicket(id: number, data: any) {
 
     const nombreTecnico = session.user.name;
 
+    // Busca el sector cruzando nombre y ID de ubicación, y une los internos con guion
+    const sectorEncontrado = DATOS_SECTORES.find(
+      (s: any) => s.nombre === data.sector && s.ubicacionId === Number(data.ubicacion)
+    );
+    const internosFormateados = sectorEncontrado?.interno?.join(" - ") || "";
+
     const datosActualizacion: any = {
       sector: data.sector,
-      interno: data.interno,
-      categoryId: Number(data.categoryId),
+      interno: internosFormateados, 
+      category: { 
+        connect: { id: Number(data.categoryId) } 
+      },
       ubicacion: data.ubicacion,
       usuario_solicita: data.usuarioSolicita,
       descripcion: data.descripcion,
@@ -219,7 +236,7 @@ export async function actualizarTicket(id: number, data: any) {
       datosActualizacion.fecha_creacion = new Date(data.fechaManual);
     }
 
-    if (data.fechaCierreManual) {                                       // NUEVO
+    if (data.fechaCierreManual) {                                       
       datosActualizacion.fecha_cierre = new Date(data.fechaCierreManual);
     }
 
@@ -242,7 +259,6 @@ export async function eliminarTicket(id: number) {
     const session = await auth();
     const nombreTecnico = session?.user?.name || "Sistema";
 
-    // En lugar de delete, hacemos un update del estado y registramos la fecha de cierre
     await prisma.ticket.update({
       where: { id },
       data: {

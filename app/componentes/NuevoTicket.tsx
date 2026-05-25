@@ -103,8 +103,19 @@ export default function NuevoTicket() {
   }, [editId]);
 
   const manejarCambioUbicacion = (id: string) => {
-    setUbicacionId(id === "" ? "" : Number(id));
-    setSectorSeleccionado("");
+    const nuevaUbicacionId = id === "" ? "" : Number(id);
+    setUbicacionId(nuevaUbicacionId);
+    
+    if (nuevaUbicacionId !== "") {
+      const sectoresDeUbicacion = DATOS_SECTORES.filter(s => s.ubicacionId === nuevaUbicacionId);
+      if (sectoresDeUbicacion.length === 1) {
+        setSectorSeleccionado(sectoresDeUbicacion[0].nombre);
+      } else {
+        setSectorSeleccionado("");
+      }
+    } else {
+      setSectorSeleccionado("");
+    }
   };
 
   const manejarCrearCategoria = async () => {
@@ -125,8 +136,10 @@ export default function NuevoTicket() {
         return alert("Por favor, complete todos los campos obligatorios.");
     }
 
-    const sectorEncontrado = DATOS_SECTORES.find(s => s.nombre === sectorSeleccionado);
-    const internoAutomatico = sectorEncontrado ? sectorEncontrado.interno : "";
+    const sectorEncontrado = DATOS_SECTORES.find(
+      (s: any) => s.nombre === sectorSeleccionado && s.ubicacionId === Number(ubicacionId)
+    );
+    const internoAutomatico = sectorEncontrado?.interno ? sectorEncontrado.interno.join(" - ") : "";
 
     const datos = {
       sector: sectorSeleccionado,
@@ -145,7 +158,7 @@ export default function NuevoTicket() {
       destacado 
     };
 
-    const res = editId ? await actualizarTicket(editId, datos) : await registrarTicket(datos);
+    const res = editId ? await actualizarTicket(Number(editId), datos) : await registrarTicket(datos);
 
     if (res.success) {
       router.push('/'); 
@@ -156,6 +169,9 @@ export default function NuevoTicket() {
   };
 
   if (cargando) return <p className="text-center py-20 font-bold text-slate-500 italic text-lg animate-pulse">Cargando...</p>;
+
+  // Variable auxiliar para saber si hay un solo sector
+  const esUnicoSector = sectoresFiltrados.length === 1;
 
   return (
     <main className="min-h-screen bg-gray-200 p-6">
@@ -180,7 +196,7 @@ export default function NuevoTicket() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Usuario</label>
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Solicitante</label>
               <input 
                 type="text" 
                 value={usuarioSolicita}
@@ -194,7 +210,7 @@ export default function NuevoTicket() {
           {/* GRUPO 2: UBICACIÓN - SECTOR */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Ubicación</label>
+              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Efector</label>
               <select 
                 value={ubicacionId}
                 onChange={(e) => manejarCambioUbicacion(e.target.value)}
@@ -211,8 +227,8 @@ export default function NuevoTicket() {
               <select 
                 value={sectorSeleccionado}
                 onChange={(e) => setSectorSeleccionado(e.target.value)}
-                disabled={ubicacionId === ""}
-                className={`w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium text-slate-700 ${ubicacionId === "" ? 'cursor-not-allowed bg-gray-100 text-slate-400' : 'bg-white'}`}
+                disabled={ubicacionId === "" || esUnicoSector}
+                className={`w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium text-slate-700 ${ubicacionId === "" || esUnicoSector ? 'cursor-not-allowed bg-gray-100 text-slate-500' : 'bg-white'}`}
               >
                 <option value="">
                   {ubicacionId === "" ? "Primero elija ubicación..." : "Seleccione sector..."}
@@ -296,7 +312,7 @@ export default function NuevoTicket() {
             <textarea 
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700 min-h-[100px]"
+              className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700 min-h-100px"
               placeholder="Detalle el problema aquí..."
             />
           </div>
@@ -307,7 +323,7 @@ export default function NuevoTicket() {
             <textarea 
               value={solucion}
               onChange={(e) => setSolucion(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700 min-h-[100px]"
+              className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700 min-h-100px"
               placeholder="Escriba los detalles de la solución aquí si ya fue resuelto..."
             />
           </div>

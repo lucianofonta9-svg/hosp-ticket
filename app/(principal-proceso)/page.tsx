@@ -11,10 +11,10 @@ export default async function Home() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8 border-b pb-4 border-gray-300">
           <h1 className="text-3xl font-black text-slate-800 tracking-tight">
-            Panel de Control
+            Pendientes 📌
           </h1>
           <div className="bg-white px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-gray-500">
-            {tickets.length} Tickets Pendientes
+            {tickets.length} Tickets Pendientes ⏳
           </div>
         </div>
 
