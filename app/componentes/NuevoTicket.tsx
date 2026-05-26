@@ -74,23 +74,23 @@ export default function NuevoTicket() {
           setUbicacionId(Number(ticket.ubicacion) || ""); 
           setSectorSeleccionado(ticket.sector);
           setCategoriaId(ticket.categoryId?.toString() || "");
-          setUsuarioSolicita(ticket.usuario_solicita || ""); 
+          setUsuarioSolicita(ticket.usuarioSolicita || ""); 
           setDescripcion(ticket.descripcion);
           setSolucion(ticket.solucion || "");
-          setEsGuardia(ticket.es_guardia);
+          setEsGuardia(ticket.esGuardia);
           setDestacado(ticket.destacado || false);
           setUrgencia(ticket.urgencia || "BAJA");
-          setTipoAsistencia(ticket.tipo_asistencia || "PRESENCIAL");
+          setTipoAsistencia(ticket.tipoAsistencia || "PRESENCIAL");
 
-          if (ticket.fecha_creacion) {
-            const d = new Date(ticket.fecha_creacion);
+          if (ticket.fechaCreacion) {
+            const d = new Date(ticket.fechaCreacion);
             const tzOffset = d.getTimezoneOffset() * 60000;
             setFechaHora(new Date(d.getTime() - tzOffset).toISOString().slice(0, 16));
           }
 
-          if (ticket.fecha_cierre) {                                            
+          if (ticket.fechaCierre) {                                            
             setTieneCierre(true);
-            const d = new Date(ticket.fecha_cierre);
+            const d = new Date(ticket.fechaCierre);
             const tzOffset = d.getTimezoneOffset() * 60000;
             setFechaHoraCierre(new Date(d.getTime() - tzOffset).toISOString().slice(0, 16));
           }
@@ -312,7 +312,7 @@ export default function NuevoTicket() {
             <textarea 
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700 min-h-100px"
+              className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700 min-h-[100px]"
               placeholder="Detalle el problema aquí..."
             />
           </div>
@@ -323,7 +323,7 @@ export default function NuevoTicket() {
             <textarea 
               value={solucion}
               onChange={(e) => setSolucion(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700 min-h-100px"
+              className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700 min-h-[100px]"
               placeholder="Escriba los detalles de la solución aquí si ya fue resuelto..."
             />
           </div>

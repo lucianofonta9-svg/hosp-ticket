@@ -83,24 +83,24 @@ export default function HistorialPage() {
 
   const sectoresUnicos = Array.from(new Set(tickets.map(t => t.sector))).sort();
 
-  // 1. Filtrado de todos los datos
+  // 1. Filtrado de todos los datos adaptado al nuevo esquema
   const ticketsFiltrados = tickets.filter(t => {
     const coincideGeneral = filtroGeneral === "" || 
       t.sector.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
       t.descripcion.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
       (t.solucion && t.solucion.toLowerCase().includes(filtroGeneral.toLowerCase())) ||
       t.tecnico.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
-      (t.usuario_solicita && t.usuario_solicita.toLowerCase().includes(filtroGeneral.toLowerCase()));
+      (t.usuarioSolicita && t.usuarioSolicita.toLowerCase().includes(filtroGeneral.toLowerCase()));
 
     const coincideUbicacion = filtroUbicacion === "" || t.ubicacion === filtroUbicacion;
     const coincideCategoria = filtroCategoria === "" || (t.category && t.category.id.toString() === filtroCategoria);
     const coincideUrgencia = filtroUrgencia === "" || t.urgencia === filtroUrgencia;
     const coincideSector = filtroSector === "" || t.sector === filtroSector;
-    const coincideAsistencia = filtroAsistencia === "" || t.tipo_asistencia === filtroAsistencia;
+    const coincideAsistencia = filtroAsistencia === "" || t.tipoAsistencia === filtroAsistencia;
 
     let coincideFecha = true;
     if (fechaInicio || fechaFin) {
-      const fechaTicket = new Date(t.fecha_creacion);
+      const fechaTicket = new Date(t.fechaCreacion);
       if (fechaInicio) {
         const inicio = new Date(fechaInicio + "T00:00:00"); 
         if (fechaTicket < inicio) coincideFecha = false;
@@ -307,26 +307,26 @@ export default function HistorialPage() {
                     <React.Fragment key={t.id}>
                       <tr className={`hover:bg-gray-50 transition-colors ${
                         esEliminado ? 'bg-gray-200/60 opacity-60 text-gray-400' : 
-                        t.es_guardia ? 'bg-red-50/50 text-slate-800' : 
+                        t.esGuardia ? 'bg-red-50/50 text-slate-800' : 
                         t.destacado ? 'bg-amber-50/50 text-slate-800' : 'text-slate-800'
                       }`}>
                         
                         <td className="p-3 align-top font-bold">#{t.id}</td>
 
                         <td className="p-3 text-center align-top font-medium">
-                          {t.es_guardia ? "Sí" : "-"}
+                          {t.esGuardia ? "Sí" : "-"}
                         </td>
 
-                        <td className="p-3 align-top">{formatearFecha(t.fecha_creacion)}</td>
-                        <td className="p-3 align-top">{formatearFecha(t.fecha_cierre)}</td>
+                        <td className="p-3 align-top">{formatearFecha(t.fechaCreacion)}</td>
+                        <td className="p-3 align-top">{formatearFecha(t.fechaCierre)}</td>
                         <td className="p-3 align-top">{obtenerNombreUbicacion(t.ubicacion)}</td>
                         <td className="p-3 align-top font-bold">{t.sector}</td>
                         <td className="p-3 align-top font-medium">{t.interno || "-"}</td>
-                        <td className="p-3 align-top">{t.usuario_solicita}</td>
+                        <td className="p-3 align-top">{t.usuarioSolicita}</td>
                         <td className="p-3 align-top">{t.tecnico}</td>
                         <td className="p-3 align-top">{t.category?.name || "Gral"}</td>
                         <td className="p-3 align-top">{t.urgencia}</td>
-                        <td className="p-3 align-top">{t.tipo_asistencia}</td>
+                        <td className="p-3 align-top">{t.tipoAsistencia}</td>
                         
                         <td className="p-3 max-w-xs align-top">
                           <div className={descAbierta ? "whitespace-normal" : "line-clamp-2"}>
@@ -350,7 +350,7 @@ export default function HistorialPage() {
                           )}
                         </td>
 
-                        <td className="p-3 align-top font-medium">{calcularDuracion(t.fecha_creacion, t.fecha_cierre)}</td>
+                        <td className="p-3 align-top font-medium">{calcularDuracion(t.fechaCreacion, t.fechaCierre)}</td>
 
                         <td className="p-3 align-top">
                           <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">

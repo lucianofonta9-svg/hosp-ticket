@@ -8,35 +8,34 @@ datasource db {
 }
 
 model Ticket {
-  id               Int      @id @default(autoincrement())
-  sector           String
-  interno          String?
-  categoryId       Int
-  category         Category @relation(fields: [categoryId], references: [id])
-  ubicacion        String   
-  usuario_solicita String 
-  descripcion      String
-  es_guardia       Boolean  @default(false)
-  estado           String   @default("EN_PROCESO") 
-  fecha_creacion   DateTime @default(now())
-  fecha_cierre     DateTime?
-  tecnico          String
-  tecnico_cierre   String?
-  logs             TicketLog[]
-  urgencia         Urgencia       @default(BAJA)
-  tipo_asistencia  TipoAsistencia @default(PRESENCIAL)
-  solucion         String?
-  destacado        Boolean        @default(false)
-
+  id              Int            @id @default(autoincrement())
+  sector          String
+  interno         String?
+  categoryId      Int
+  category        Category       @relation(fields: [categoryId], references: [id])
+  ubicacion       String   
+  usuarioSolicita String 
+  descripcion     String
+  esGuardia       Boolean        @default(false)
+  estado          Estado         @default(EN_PROCESO) 
+  fechaCreacion   DateTime       @default(now())
+  fechaCierre     DateTime?
+  tecnico         String
+  tecnicoCierre   String?
+  logs            TicketLog[]
+  urgencia        Urgencia       @default(BAJA)
+  tipoAsistencia  TipoAsistencia @default(PRESENCIAL)
+  solucion        String?
+  destacado       Boolean        @default(false)
 }
 
 model TicketLog {
-  id          Int      @id @default(autoincrement())
-  ticketId    Int
-  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  estado      String   
-  tecnico     String   
-  fecha       DateTime @default(now())
+  id       Int      @id @default(autoincrement())
+  ticketId Int
+  ticket   Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  estado   Estado   
+  tecnico  String   
+  fecha    DateTime @default(now())
 }
 
 model Category {
@@ -52,6 +51,13 @@ model User {
   nombre    String
   rol       String   @default("TECNICO") // "ADMIN" o "TECNICO"
   createdAt DateTime @default(now())
+}
+
+enum Estado {
+  EN_PROCESO
+  PAUSADO
+  RESUELTO
+  ELIMINADO
 }
 
 enum Urgencia {

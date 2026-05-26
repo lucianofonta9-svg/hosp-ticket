@@ -44,7 +44,6 @@ export async function registrarTicket(datos: {
       ? (datos.fechaCierreManual ? new Date(datos.fechaCierreManual) : new Date())
       : null;
 
-    // Busca el sector cruzando nombre y ID de ubicación, y une los internos con guion
     const sectorEncontrado = DATOS_SECTORES.find(
       s => s.nombre === datos.sector && s.ubicacionId === Number(datos.ubicacion)
     );
@@ -56,21 +55,21 @@ export async function registrarTicket(datos: {
         interno: internosFormateados, 
         categoryId: Number(datos.categoryId),
         ubicacion: datos.ubicacion,
-        usuario_solicita: datos.usuarioSolicita,
+        usuarioSolicita: datos.usuarioSolicita,
         descripcion: datos.descripcion,
         solucion: datos.solucion || null, 
-        es_guardia: datos.esGuardia,
+        esGuardia: datos.esGuardia,
         destacado: datos.destacado,         
         urgencia: datos.urgencia,
-        tipo_asistencia: datos.tipoAsistencia,
+        tipoAsistencia: datos.tipoAsistencia,
         estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
-        fecha_creacion: fechaCreacion,    
-        fecha_cierre: fechaCierre,                                      
+        fechaCreacion: fechaCreacion,    
+        fechaCierre: fechaCierre,                                      
         tecnico: nombreTecnico,
-        tecnico_cierre: datos.esResolucionInmediata ? nombreTecnico : null,
+        tecnicoCierre: datos.esResolucionInmediata ? nombreTecnico : null,
         logs: {
           create: {
-            estado: datos.esResolucionInmediata ? "FINALIZADO" : "CREADO",
+            estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
             tecnico: nombreTecnico,
             fecha: fechaCreacion          
           }
@@ -115,12 +114,12 @@ export async function obtenerTicketsPendientes() {
       if (pesoA !== pesoB) {
         return pesoA - pesoB;
       }
-      return new Date(a.fecha_creacion).getTime() - new Date(b.fecha_creacion).getTime();
+      return new Date(a.fechaCreacion).getTime() - new Date(b.fechaCreacion).getTime();
     });
 
     return ticketsOrdenados.map(t => ({
       ...t,
-      fecha_creacion: t.fecha_creacion.toISOString(),
+      fechaCreacion: t.fechaCreacion.toISOString(),
     }));
   } catch (error) {
     console.error("Error al obtener tickets:", error);
@@ -137,11 +136,11 @@ export async function finalizarTicket(id: number) {
       where: { id },
       data: { 
         estado: "RESUELTO", 
-        fecha_cierre: new Date(),
-        tecnico_cierre: nombreTecnico,
+        fechaCierre: new Date(),
+        tecnicoCierre: nombreTecnico,
         logs: {
           create: {
-            estado: "FINALIZADO",
+            estado: "RESUELTO",
             tecnico: nombreTecnico
           }
         }
@@ -167,13 +166,13 @@ export async function obtenerHistorialTickets() {
         category: true,
         logs: { orderBy: { fecha: 'asc' } }
       },
-      orderBy: { fecha_cierre: 'desc' },
+      orderBy: { fechaCierre: 'desc' },
     });
 
     const ticketsMapeados = tickets.map(t => ({
       ...t,
-      fecha_creacion: t.fecha_creacion.toISOString(),
-      fecha_cierre: t.fecha_cierre ? t.fecha_cierre.toISOString() : null,
+      fechaCreacion: t.fechaCreacion.toISOString(),
+      fechaCierre: t.fechaCierre ? t.fechaCierre.toISOString() : null,
     }));
 
     return ticketsMapeados.sort((a, b) => {
@@ -204,7 +203,6 @@ export async function actualizarTicket(id: number, data: any) {
 
     const nombreTecnico = session.user.name;
 
-    // Busca el sector cruzando nombre y ID de ubicación, y une los internos con guion
     const sectorEncontrado = DATOS_SECTORES.find(
       (s: any) => s.nombre === data.sector && s.ubicacionId === Number(data.ubicacion)
     );
@@ -217,27 +215,27 @@ export async function actualizarTicket(id: number, data: any) {
         connect: { id: Number(data.categoryId) } 
       },
       ubicacion: data.ubicacion,
-      usuario_solicita: data.usuarioSolicita,
+      usuarioSolicita: data.usuarioSolicita,
       descripcion: data.descripcion,
       solucion: data.solucion || null,   
-      es_guardia: data.esGuardia,
+      esGuardia: data.esGuardia,
       destacado: data.destacado,         
       urgencia: data.urgencia,          
-      tipo_asistencia: data.tipoAsistencia,
+      tipoAsistencia: data.tipoAsistencia,
       logs: {
         create: {
-          estado: "EDITADO",
+          estado: "EN_PROCESO",
           tecnico: nombreTecnico
         }
       }
     };
 
     if (data.fechaManual) {              
-      datosActualizacion.fecha_creacion = new Date(data.fechaManual);
+      datosActualizacion.fechaCreacion = new Date(data.fechaManual);
     }
 
     if (data.fechaCierreManual) {                                       
-      datosActualizacion.fecha_cierre = new Date(data.fechaCierreManual);
+      datosActualizacion.fechaCierre = new Date(data.fechaCierreManual);
     }
 
     await prisma.ticket.update({
@@ -263,8 +261,8 @@ export async function eliminarTicket(id: number) {
       where: { id },
       data: {
         estado: "ELIMINADO",
-        fecha_cierre: new Date(),
-        tecnico_cierre: nombreTecnico,
+        fechaCierre: new Date(),
+        tecnicoCierre: nombreTecnico,
         logs: {
           create: {
             estado: "ELIMINADO",
@@ -292,11 +290,11 @@ export async function reabrirTicket(id: number) {
       where: { id },
       data: {
         estado: "EN_PROCESO",
-        fecha_cierre: null,
-        tecnico_cierre: null,
+        fechaCierre: null,
+        tecnicoCierre: null,
         logs: {
           create: {
-            estado: "REABIERTO",
+            estado: "EN_PROCESO",
             tecnico: nombreTecnico
           }
         }
@@ -377,36 +375,6 @@ export async function autenticar(
   }
 }
 
-export async function crearUsuariosManuales() {
-  try {
-    const passwordHasheada = await bcrypt.hash("1q2w3e4r", 10);
-
-    const usuarios = [
-      { nombre: "Fernando Cabral", username: "Fernando", rol: "ADMIN" },
-      { nombre: "Pablo Torcivia", username: "Pablo", rol: "ADMIN" },
-      { nombre: "Vladimir Szkylnyj", username: "Vladimir", rol: "ADMIN" },
-    ];
-
-    for (const u of usuarios) {
-      await prisma.user.upsert({
-        where: { username: u.username },
-        update: {},
-        create: {
-          nombre: u.nombre,
-          username: u.username,
-          password: passwordHasheada,
-          rol: u.rol,
-        },
-      });
-    }
-
-    revalidatePath("/");
-    return { success: true, message: "Los usuarios fueron creados/verificados." };
-  } catch (error) {
-    console.error(error);
-    return { success: false, message: "Error al crear usuarios." };
-  }
-}
 
 export async function alternarDestacadoTicket(id: number, estadoActual: boolean) {
   try {

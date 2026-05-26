@@ -52,7 +52,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
     await alternarDestacadoTicket(ticket.id, ticket.destacado);
   };
 
-  const formatearFechaCard = (fecha: Date) => {
+  const formatearFechaCard = (fecha: Date | string) => {
     return new Intl.DateTimeFormat('es-AR', {
       day: '2-digit',
       month: '2-digit',
@@ -79,7 +79,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
 
   return (
     <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10 transition-all ${
-      esPausado ? 'bg-gray-100 border-gray-400 opacity-80' : `bg-white ${obtenerColorUrgencia(ticket.urgencia, ticket.es_guardia)}`
+      esPausado ? 'bg-gray-100 border-gray-400 opacity-80' : `bg-white ${obtenerColorUrgencia(ticket.urgencia, ticket.esGuardia)}`
     } ${expandido || mostrarLogs ? 'h-auto' : 'h-70'}`}>
       
       <div className="w-full">
@@ -96,7 +96,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
                 Pausado
               </span>
             )}
-            {ticket.es_guardia && (
+            {ticket.esGuardia && (
               <span className="bg-red-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full animate-pulse uppercase">
                 Guardia
               </span>
@@ -131,7 +131,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
                   <div className="absolute left-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow-sm"></div>
                   <span className="text-[10px] font-bold text-blue-600 w-10">{formatearHoraLog(log.fecha)}</span>
                   <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${
-                    log.estado === 'CREADO' ? 'bg-blue-100 text-blue-700' :
+                    log.estado === 'CREADO' || log.estado === 'EN_PROCESO' ? 'bg-blue-100 text-blue-700' :
                     log.estado === 'FINALIZADO' || log.estado === 'RESUELTO' ? 'bg-emerald-100 text-emerald-700' :
                     log.estado === 'PAUSADO' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'
                   }`}>
@@ -154,7 +154,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
               className="bg-slate-100 hover:bg-blue-100 text-slate-500 hover:text-blue-600 p-2 rounded-xl transition-colors shadow-sm border border-slate-200"
               title="Editar ticket"
             >
-              <svg xmlns="http://www.w3.org/2000/xl" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
               </svg>
             </Link>
@@ -228,7 +228,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           <div className="flex flex-col ml-1 items-end">
             <span className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none mb-1">Creado:</span>
             <span className="text-xs font-black text-slate-700 py-0.5 rounded font-mono">
-              {mounted ? formatearFechaCard(ticket.fecha_creacion) : '--/-- --:--'}
+              {mounted ? formatearFechaCard(ticket.fechaCreacion) : '--/-- --:--'}
             </span>
           </div>
         </div>
@@ -246,7 +246,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
               </span>
             </p>
             <p className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none">
-              Solicita: <span className="text-slate-600 font-black">{ticket.usuario_solicita}</span>
+              Solicita: <span className="text-slate-600 font-black">{ticket.usuarioSolicita}</span>
             </p>
           </div>
 
