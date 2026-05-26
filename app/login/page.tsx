@@ -57,7 +57,7 @@ export default function LoginPage() {
 
       
         <p className="text-center text-[11px] text-slate-400 mt-4">
-          Acceso restringido a personal de soporte técnico autorizado.
+          Acceso restringido a personal de informatica del Hospital Jaime Ferré.
         </p>
       </div>
     </main>
@@ -91,7 +91,7 @@ function LoginButton() {
           Verificando...
         </span>
       ) : (
-        "Entrar al Sistema"
+        "Ingresar"
       )}
     </button>
   );
