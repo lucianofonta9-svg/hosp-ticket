@@ -15,9 +15,9 @@ export default async function Navbar() {
           {/* Lado izquierdo: logo */}
           <div className="md:w-1/3 flex justify-start">
             <Link href="/" className="flex items-center gap-1.5 group shrink-0">
-              <span className="font-black tracking-tight text-xl">HOSP</span>
+              <span className="font-bold tracking-tight text-xl">HOSP</span>
               <div className="bg-slate-700 px-1.5 py-1 rounded-lg group-hover:bg-slate-200 group-hover:text-slate-800 transition-colors text-slate-200">
-                <span className="font-black tracking-tight text-xl">TICKET</span>
+                <span className="font-bold tracking-tight text-xl">TICKET</span>
               </div>
             </Link>
           </div>
@@ -47,13 +47,13 @@ export default async function Navbar() {
             {/* Lado derecho: usuario y logout */}
             <div className="md:w-1/2 flex flex-col md:flex-row items-center justify-end shrink-0 gap-4 md:gap-0">
               <div className="text-center md:text-right border-b md:border-b-0 border-slate-800 pb-4 md:pb-0 md:border-r md:pr-4 w-full md:w-auto">
-                <p className="inline-block px-2 py-1 mb-1 text-[10px] font-bold bg-slate-700 rounded-full text-gray-200 uppercase leading-none">
+                <p className="inline-block align-middle px-2 py-1 mb-1 text-[10px] font-bold bg-slate-700 rounded-full text-gray-200 uppercase leading-none">
                   Usuario
                 </p>
                 <p className="text-lg md:text-base text-gray-200 font-bold">{session.user?.name}</p>
               </div>
 
-              <form action={async () => { "use server"; await signOut(); }} className="w-full md:w-auto">
+              <form action={async () => { "use server"; await signOut(); }} className="w-full font-bold md:w-auto">
                 <button 
                   type="submit"
                   className="flex items-center justify-center w-full md:w-auto md:ml-1 gap-0.5 p-3 md:p-2 text-gray-200 hover:text-red-400 hover:bg-slate-800 rounded-xl md:rounded-full transition-all bg-slate-800 md:bg-transparent mt-2 md:mt-0"
