@@ -14,7 +14,7 @@ export default async function Navbar() {
           
           {/* Lado izquierdo: logo */}
           <div className="md:w-1/3 flex justify-start">
-            <Link href="/" className="flex items-center gap-1.5 group shrink-0">
+            <Link href="/nuevo" className="flex items-center gap-1 group shrink-0">
               <span className="font-bold tracking-tight text-xl">HOSP</span>
               <div className="bg-slate-700 px-1.5 py-1 rounded-lg group-hover:bg-slate-200 group-hover:text-slate-800 transition-colors text-slate-200">
                 <span className="font-bold tracking-tight text-xl">TICKET</span>

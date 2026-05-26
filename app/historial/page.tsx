@@ -143,7 +143,7 @@ export default function HistorialPage() {
       <div className="max-w-7xl mx-auto">
         
         <div className="flex justify-between items-center mb-8 border-b pb-4 border-gray-300">
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
             Historial 🗄️
           </h1>
           <div className="bg-white px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-gray-500">

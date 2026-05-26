@@ -177,7 +177,7 @@ export default function NuevoTicket() {
     <main className="min-h-screen bg-gray-200 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8 border-b pb-4 flex justify-start border-gray-300">
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
             {editId ? 'Editar Ticket  ✏️' : 'Crear Ticket 📋'}
           </h1>
         </div>
