@@ -53,19 +53,27 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
   };
 
   const formatearFechaCard = (fecha: Date | string) => {
+    const fechaObj = new Date(fecha);
+    const fechaCorregida = new Date(fechaObj.getTime() + (3 * 60 * 60 * 1000));
+    
     return new Intl.DateTimeFormat('es-AR', {
+      timeZone: 'America/Argentina/Buenos_Aires',
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(new Date(fecha));
+    }).format(fechaCorregida);
   };
 
   const formatearHoraLog = (fecha: string | Date) => {
+    const fechaObj = new Date(fecha);
+    const fechaCorregida = new Date(fechaObj.getTime() + (3 * 60 * 60 * 1000));
+
     return new Intl.DateTimeFormat('es-AR', {
+      timeZone: 'America/Argentina/Buenos_Aires',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(new Date(fecha));
+    }).format(fechaCorregida);
   };
   
   // NUEVO: Función para determinar el color del borde según la urgencia
