@@ -38,10 +38,10 @@ export async function registrarTicket(datos: {
     }
 
     const nombreTecnico = session.user.name;
-    const fechaCreacion = new Date(datos.fechaManual);
+    const fechaCreacion = parseFechaArgentina(datos.fechaManual);
     
     const fechaCierre = datos.esResolucionInmediata
-      ? (datos.fechaCierreManual ? new Date(datos.fechaCierreManual) : new Date())
+      ? (datos.fechaCierreManual ? parseFechaArgentina(datos.fechaCierreManual) : new Date())
       : null;
 
     const sectorEncontrado = DATOS_SECTORES.find(
@@ -231,11 +231,11 @@ export async function actualizarTicket(id: number, data: any) {
     };
 
     if (data.fechaManual) {              
-      datosActualizacion.fechaCreacion = new Date(data.fechaManual);
+      datosActualizacion.fechaCreacion = parseFechaArgentina(data.fechaManual);
     }
 
     if (data.fechaCierreManual) {                                       
-      datosActualizacion.fechaCierre = new Date(data.fechaCierreManual);
+      datosActualizacion.fechaCierre = parseFechaArgentina(data.fechaCierreManual);
     }
 
     await prisma.ticket.update({
@@ -392,3 +392,11 @@ export async function alternarDestacadoTicket(id: number, estadoActual: boolean)
     return { success: false };
   }
 }
+
+const parseFechaArgentina = (fechaStr: string) => {
+  if (fechaStr && fechaStr.includes('T') && fechaStr.length === 16) {
+    // Convierte "YYYY-MM-DDTHH:mm" a "YYYY-MM-DDTHH:mm:00-03:00" para forzar hora AR
+    return new Date(`${fechaStr}:00-03:00`);
+  }
+  return new Date(fechaStr);
+};
