@@ -54,8 +54,11 @@ model User {
 }
 
 enum Estado {
+  CREADO
   EN_PROCESO
   PAUSADO
+  REANUDADO
+  EDITADO
   RESUELTO
   ELIMINADO
 }

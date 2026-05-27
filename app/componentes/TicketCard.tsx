@@ -53,27 +53,21 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
   };
 
   const formatearFechaCard = (fecha: Date | string) => {
-    const fechaObj = new Date(fecha);
-    const fechaCorregida = new Date(fechaObj.getTime() + (3 * 60 * 60 * 1000));
-    
     return new Intl.DateTimeFormat('es-AR', {
       timeZone: 'America/Argentina/Buenos_Aires',
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(fechaCorregida);
+    }).format(new Date(fecha));
   };
 
   const formatearHoraLog = (fecha: string | Date) => {
-    const fechaObj = new Date(fecha);
-    const fechaCorregida = new Date(fechaObj.getTime() + (3 * 60 * 60 * 1000));
-
     return new Intl.DateTimeFormat('es-AR', {
       timeZone: 'America/Argentina/Buenos_Aires',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(fechaCorregida);
+    }).format(new Date(fecha));
   };
   
   // NUEVO: Función para determinar el color del borde según la urgencia
@@ -139,10 +133,14 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
                   <div className="absolute left-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow-sm"></div>
                   <span className="text-[10px] font-bold text-blue-600 w-10">{formatearHoraLog(log.fecha)}</span>
                   <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded uppercase ${
-                    log.estado === 'CREADO' || log.estado === 'EN_PROCESO' ? 'bg-blue-100 text-blue-700' :
+                    log.estado === 'CREADO' ? 'bg-blue-100 text-blue-700' :
+                    log.estado === 'EDITADO' ? 'bg-purple-100 text-purple-700' :
+                    log.estado === 'REANUDADO' ? 'bg-indigo-100 text-indigo-700' :
+                    log.estado === 'PAUSADO' ? 'bg-orange-100 text-orange-700' :
+                    log.estado === 'EN_PROCESO' ? 'bg-sky-100 text-sky-700' :
                     log.estado === 'FINALIZADO' || log.estado === 'RESUELTO' ? 'bg-emerald-100 text-emerald-700' :
-                    log.estado === 'PAUSADO' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'
-                  }`}>
+                    log.estado === 'ELIMINADO' ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'
+                    }`}>
                     {log.estado}
                   </span>
                   <span className="text-[10px] text-gray-500 italic truncate">por {log.tecnico}</span>

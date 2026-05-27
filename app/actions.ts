@@ -69,9 +69,9 @@ export async function registrarTicket(datos: {
         tecnicoCierre: datos.esResolucionInmediata ? nombreTecnico : null,
         logs: {
           create: {
-            estado: datos.esResolucionInmediata ? "RESUELTO" : "EN_PROCESO",
+            estado: datos.esResolucionInmediata ? "RESUELTO" : "CREADO",
             tecnico: nombreTecnico,
-            fecha: fechaCreacion          
+            fecha: fechaCreacion     
           }
         }
       },
@@ -224,7 +224,7 @@ export async function actualizarTicket(id: number, data: any) {
       tipoAsistencia: data.tipoAsistencia,
       logs: {
         create: {
-          estado: "EN_PROCESO",
+          estado: "EDITADO",
           tecnico: nombreTecnico
         }
       }
@@ -294,7 +294,7 @@ export async function reabrirTicket(id: number) {
         tecnicoCierre: null,
         logs: {
           create: {
-            estado: "EN_PROCESO",
+            estado: "REANUDADO",
             tecnico: nombreTecnico
           }
         }
@@ -314,13 +314,15 @@ export async function cambiarEstadoTicket(id: number, nuevoEstado: "EN_PROCESO" 
     const session = await auth();
     const nombreTecnico = session?.user?.name || "Sistema";
 
+    const estadoLog = nuevoEstado === "EN_PROCESO" ? "REANUDADO" : "PAUSADO";
+
     await prisma.ticket.update({
       where: { id },
       data: { 
         estado: nuevoEstado,
         logs: {
           create: {
-            estado: nuevoEstado,
+            estado: estadoLog,
             tecnico: nombreTecnico
           }
         }
