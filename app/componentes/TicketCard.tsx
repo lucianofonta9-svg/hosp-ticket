@@ -93,26 +93,26 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
       <div className="w-full">
         <div className="flex justify-between items-start ">
           <div className="flex flex-col gap-1 w-full">
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
               {obtenerNombreUbicacion(ticket.ubicacion)} {ticket.interno && `| Interno: ${ticket.interno}`}
             </span>
           </div>
 
           <div className="flex gap-1">
             {esPausado && (
-              <span className="bg-gray-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">
+              <span className="bg-gray-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
                 Pausado
               </span>
             )}
             {ticket.esGuardia && (
-              <span className="bg-red-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full animate-pulse uppercase">
+              <span className="bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse uppercase">
                 Guardia
               </span>
             )}
           </div>
         </div>
         
-        <h2 className={`text-xl mb-2 mt-2 font-black leading-tight truncate ${esPausado ? 'text-gray-500' : 'text-slate-900'}`}>
+        <h2 className={`text-xl mb-2 mt-2 font-bold leading-tight truncate ${esPausado ? 'text-gray-500' : 'text-slate-900'}`}>
           {ticket.sector}
         </h2>
 
@@ -123,7 +123,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
         {esLargo && (
           <button 
             onClick={() => setExpandido(!expandido)}
-            className="text-blue-600 text-[10px] font-black mt-2 hover:underline uppercase block"
+            className="text-blue-600 text-[10px] font-bold mt-2 hover:underline uppercase block"
           >
             {expandido ? 'Ver menos -' : 'Ver más +'}
           </button>
@@ -138,7 +138,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
                 <div key={log.id} className="flex items-center gap-3 relative pl-5">
                   <div className="absolute left-0 w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow-sm"></div>
                   <span className="text-[10px] font-bold text-blue-600 w-10">{formatearHoraLog(log.fecha)}</span>
-                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${
+                  <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded uppercase ${
                     log.estado === 'CREADO' || log.estado === 'EN_PROCESO' ? 'bg-blue-100 text-blue-700' :
                     log.estado === 'FINALIZADO' || log.estado === 'RESUELTO' ? 'bg-emerald-100 text-emerald-700' :
                     log.estado === 'PAUSADO' ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'
@@ -235,7 +235,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
 
           <div className="flex flex-col ml-1 items-end">
             <span className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none mb-1">Creado:</span>
-            <span className="text-xs font-black text-slate-700 py-0.5 rounded font-mono">
+            <span className="text-xs font-bold text-slate-700 py-0.5 rounded font-mono">
               {mounted ? formatearFechaCard(ticket.fechaCreacion) : '--/-- --:--'}
             </span>
           </div>
@@ -245,7 +245,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
         <div className="flex justify-between items-end mt-2 pt-1">
           <div className="flex flex-col gap-1">
             <p className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none">Urgencia:
-              <span className={`px-1 py-0.2 rounded-full text-[9px] font-black uppercase border ml-1 ${
+              <span className={`px-1 py-0.2 rounded-full text-[9px] font-bold uppercase border ml-1 ${
                   ticket.urgencia === 'CRITICA' ? 'bg-red-100 text-red-700 border-red-200 animate-pulse' :
                   ticket.urgencia === 'MEDIA' ? 'bg-amber-100 text-amber-700 border-amber-200' :
                   'bg-emerald-100 text-emerald-700 border-emerald-200'
@@ -254,7 +254,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
               </span>
             </p>
             <p className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none">
-              Solicita: <span className="text-slate-600 font-black">{ticket.usuarioSolicita}</span>
+              Solicita: <span className="text-slate-600 font-bold">{ticket.usuarioSolicita}</span>
             </p>
           </div>
 
@@ -263,7 +263,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
               <input type="hidden" name="id" value={ticket.id} />
               <button 
                 type="submit"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black py-2 px-3 rounded-xl transition-all shadow-md active:scale-95 uppercase w-auto"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold py-2 px-3 rounded-xl transition-all shadow-md active:scale-95 uppercase w-auto"
               >
                 Finalizar
               </button>
