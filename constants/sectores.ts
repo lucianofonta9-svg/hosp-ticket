@@ -88,6 +88,7 @@ export const DATOS_SECTORES = [
   { nombre: "UTPR Sala Parto 2", interno: ["14233"], ubicacionId: 1 },
   { nombre: "Vigilancia", interno: ["14300"], ubicacionId: 1 },
   { nombre: "UCO", interno: ["14207"], ubicacionId: 1 },
+  { nombre: "Consultorio", interno: ["-"], ubicacionId: 1 },
 
   // ANEXO
 
@@ -133,18 +134,29 @@ export const DATOS_SECTORES = [
   { nombre: "Psiquiatria", interno: ["14377"], ubicacionId: 2 },
   { nombre: "Otorrino", interno: ["14378"], ubicacionId: 2 },
   { nombre: "Certificados-Discapacidad", interno: ["14379"], ubicacionId: 2 },
+  { nombre: "Consultorio", interno: ["-"], ubicacionId: 2 },
 
   // CENTROS DE SALUD
 
-  { nombre: "CS1", interno: ["14351"], ubicacionId: 3 },
-  { nombre: "CS2", interno: ["14352"], ubicacionId: 4 },
-  { nombre: "CS3", interno: ["14353"], ubicacionId: 5 },
-  { nombre: "CS4", interno: ["14354"], ubicacionId: 6 },
-  { nombre: "CS5", interno: ["14355"], ubicacionId: 7 },
-  { nombre: "CS6", interno: ["14356"], ubicacionId: 8 },
-  { nombre: "CS7", interno: ["13357"], ubicacionId: 9 },
-  { nombre: "CS8", interno: ["14358"], ubicacionId: 10 },
-  { nombre: "CS9", interno: ["14359"], ubicacionId: 11 },
-  { nombre: "CS10", interno: ["14360"], ubicacionId: 12 },
-  { nombre: "CS11", interno: ["14361"], ubicacionId: 13 },
+  { nombre: "Consultorio", interno: ["14351"], ubicacionId: 3 },
+
+  { nombre: "Consultorio", interno: ["14352"], ubicacionId: 4 },
+
+  { nombre: "Consultorio", interno: ["14353"], ubicacionId: 5 },
+
+  { nombre: "Consultorio", interno: ["14354"], ubicacionId: 6 },
+
+  { nombre: "Consultorio", interno: ["14355"], ubicacionId: 7 },
+
+  { nombre: "Consultorio", interno: ["14356"], ubicacionId: 8 },
+
+  { nombre: "Consultorio", interno: ["13357"], ubicacionId: 9 },
+
+  { nombre: "Consultorio", interno: ["14358"], ubicacionId: 10 },
+
+  { nombre: "Consultorio", interno: ["14359"], ubicacionId: 11 },
+
+  { nombre: "Consultorio", interno: ["14360"], ubicacionId: 12 },
+
+  { nombre: "Consultorio", interno: ["14361"], ubicacionId: 13 },
 ];

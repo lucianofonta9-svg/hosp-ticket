@@ -59,7 +59,10 @@ export default function NuevoTicket() {
 
   const sectoresFiltrados = useMemo(() => {
     if (ubicacionId === "") return [];
-    return DATOS_SECTORES.filter(sector => sector.ubicacionId === ubicacionId);
+    
+    return DATOS_SECTORES
+      .filter(sector => sector.ubicacionId === ubicacionId)
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
   }, [ubicacionId]);
 
   useEffect(() => {
@@ -132,7 +135,7 @@ export default function NuevoTicket() {
   };
 
   const manejarGuardado = async () => {
-    if (ubicacionId === "" || !sectorSeleccionado || !categoriaId || !descripcion) {
+    if (ubicacionId === "" || !sectorSeleccionado || !categoriaId) {
         return alert("Por favor, complete todos los campos obligatorios.");
     }
 
@@ -207,7 +210,7 @@ export default function NuevoTicket() {
             </div>
           </div>
 
-          {/* GRUPO 2: UBICACIÓN - SECTOR */}
+          {/* GRUPO 2: Efector */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Efector</label>
@@ -216,7 +219,7 @@ export default function NuevoTicket() {
                 onChange={(e) => manejarCambioUbicacion(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
               >
-                <option value="">Seleccione lugar...</option>
+                <option value="">Seleccione efector...</option>
                 {UBICACIONES.map(u => (
                   <option key={u.id} value={u.id}>{u.nombre}</option>
                 ))}
@@ -231,7 +234,7 @@ export default function NuevoTicket() {
                 className={`w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium text-slate-700 ${ubicacionId === "" || esUnicoSector ? 'cursor-not-allowed bg-gray-100 text-slate-500' : 'bg-white'}`}
               >
                 <option value="">
-                  {ubicacionId === "" ? "Primero elija ubicación..." : "Seleccione sector..."}
+                  {ubicacionId === "" ? "Primero seleccione efector..." : "Seleccione sector..."}
                 </option>
                 {sectoresFiltrados.map(s => (
                   <option key={s.nombre} value={s.nombre}>{s.nombre}</option>
@@ -277,7 +280,7 @@ export default function NuevoTicket() {
                   onChange={(e) => setCategoriaId(e.target.value)}
                   className="flex-1 p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
                 >
-                  <option value="">Seleccione tipo...</option>
+                  <option value="">Seleccione categoría...</option>
                   {categorias.map(cat => (
                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                   ))}
@@ -324,12 +327,12 @@ export default function NuevoTicket() {
               value={solucion}
               onChange={(e) => setSolucion(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700 min-h-[100px]"
-              placeholder="Escriba los detalles de la solución aquí si ya fue resuelto..."
+              placeholder="Detalle la solución aquí"
             />
           </div>
 
           {/* CAMPO FECHA DE CIERRE MANUAL */}
-          {(esResolucionInmediata || tieneCierre || solucion.trim() !== "") && (
+          {(esResolucionInmediata || tieneCierre) && (
             <div className="animate-in fade-in slide-in-from-top-2 duration-200">
               <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Fecha y Hora de Cierre</label>
               <input 
