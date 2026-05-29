@@ -272,7 +272,7 @@ export default function NuevoTicket() {
               
           {/* GRUPO 4: CATEGORÍA DEL PROBLEMA */}
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Categoría del Problema</label>
+            <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Categoría</label>
             {!mostrandoInputCat ? (
               <div className="flex gap-2">
                 <select 
@@ -311,23 +311,23 @@ export default function NuevoTicket() {
 
           {/* DESCRIPCIÓN */}
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Descripción del problema</label>
+            <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Descripción (Opcional)</label>
             <textarea 
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700 min-h-[100px]"
-              placeholder="Detalle el problema aquí..."
+              placeholder="Detalles de la descripción aquí..."
             />
           </div>
 
           {/* CAMPO SOLUCIÓN */}
           <div>
-            <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Solución técnica (Opcional)</label>
+            <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Nota (Opcional)</label>
             <textarea 
               value={solucion}
               onChange={(e) => setSolucion(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700 min-h-[100px]"
-              placeholder="Detalle la solución aquí"
+              placeholder="Añade una nota aquí..."
             />
           </div>
 

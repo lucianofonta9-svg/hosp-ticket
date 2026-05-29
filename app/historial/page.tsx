@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { obtenerHistorialTickets, eliminarTicket, reabrirTicket, alternarDestacadoTicket, obtenerCategorias } from '../actions';
 import { UBICACIONES } from '../../constants/ubicaciones';
 
+
 export default function HistorialPage() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [filtroGeneral, setFiltroGeneral] = useState("");
@@ -11,6 +12,7 @@ export default function HistorialPage() {
   const [descripcionesAbiertas, setDescripcionesAbiertas] = useState<number[]>([]);
 
   // Estados para los filtros
+  const [filtrosVisibles, setFiltrosVisibles] = useState(false); // Nuevo estado para ocultar/mostrar panel
   const [categorias, setCategorias] = useState<any[]>([]);
   const [filtroUbicacion, setFiltroUbicacion] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
@@ -19,6 +21,8 @@ export default function HistorialPage() {
   const [filtroAsistencia, setFiltroAsistencia] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
+  const [soloDestacados, setSoloDestacados] = useState(false);
+  const [ordenFecha, setOrdenFecha] = useState("creacion_desc");
 
   // Estados para la paginación
   const [paginaActual, setPaginaActual] = useState(1);
@@ -33,10 +37,10 @@ export default function HistorialPage() {
     obtenerCategorias().then(setCategorias);
   }, []);
 
-  // Resetear a la página 1 cuando cambie cualquier filtro
+  // Resetear a la página 1 cuando cambie cualquier filtro u orden
   useEffect(() => {
     setPaginaActual(1);
-  }, [filtroGeneral, filtroUbicacion, filtroCategoria, filtroUrgencia, filtroSector, filtroAsistencia, fechaInicio, fechaFin]);
+  }, [filtroGeneral, filtroUbicacion, filtroCategoria, filtroUrgencia, filtroSector, filtroAsistencia, fechaInicio, fechaFin, soloDestacados, ordenFecha]);
 
   const limpiarFiltros = () => {
     setFiltroGeneral("");
@@ -47,6 +51,8 @@ export default function HistorialPage() {
     setFiltroAsistencia("");
     setFechaInicio("");
     setFechaFin("");
+    setSoloDestacados(false);
+    setOrdenFecha("creacion_desc");
     setPaginaActual(1);
   };
 
@@ -83,7 +89,7 @@ export default function HistorialPage() {
 
   const sectoresUnicos = Array.from(new Set(tickets.map(t => t.sector))).sort();
 
-  // 1. Filtrado de todos los datos adaptado al nuevo esquema
+  // 1. Filtrado de todos los datos
   const ticketsFiltrados = tickets.filter(t => {
     const coincideGeneral = filtroGeneral === "" || 
       t.sector.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
@@ -97,7 +103,8 @@ export default function HistorialPage() {
     const coincideUrgencia = filtroUrgencia === "" || t.urgencia === filtroUrgencia;
     const coincideSector = filtroSector === "" || t.sector === filtroSector;
     const coincideAsistencia = filtroAsistencia === "" || t.tipoAsistencia === filtroAsistencia;
-
+    const coincideDestacado = soloDestacados ? t.destacado === true : true;
+      
     let coincideFecha = true;
     if (fechaInicio || fechaFin) {
       const fechaTicket = new Date(t.fechaCreacion);
@@ -111,12 +118,36 @@ export default function HistorialPage() {
       }
     }
 
-    return coincideGeneral && coincideUbicacion && coincideCategoria && coincideUrgencia && coincideSector && coincideAsistencia && coincideFecha;
+    return coincideGeneral && coincideUbicacion && coincideCategoria && coincideUrgencia && coincideSector && coincideAsistencia && coincideDestacado && coincideFecha;
   });
 
-  // 2. Paginación de los datos ya filtrados
-  const totalPaginas = Math.ceil(ticketsFiltrados.length / registrosPorPagina);
-  const ticketsPaginados = ticketsFiltrados.slice(
+  // 2. Ordenamiento de los datos filtrados
+  const ticketsOrdenados = [...ticketsFiltrados].sort((a, b) => {
+    if (ordenFecha === "creacion_desc") {
+      return new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime();
+    }
+    if (ordenFecha === "creacion_asc") {
+      return new Date(a.fechaCreacion).getTime() - new Date(b.fechaCreacion).getTime();
+    }
+    
+    // Para fecha de cierre, manejamos posibles nulos poniéndolos al final o al principio
+    const fechaCierreA = a.fechaCierre ? new Date(a.fechaCierre).getTime() : 0;
+    const fechaCierreB = b.fechaCierre ? new Date(b.fechaCierre).getTime() : 0;
+    
+    if (ordenFecha === "cierre_desc") {
+      return fechaCierreB - fechaCierreA;
+    }
+    if (ordenFecha === "cierre_asc") {
+      const valA = a.fechaCierre ? fechaCierreA : Infinity;
+      const valB = b.fechaCierre ? fechaCierreB : Infinity;
+      return valA - valB;
+    }
+    return 0;
+  });
+
+  // 3. Paginación aplicada sobre los datos ya filtrados y ordenados
+  const totalPaginas = Math.ceil(ticketsOrdenados.length / registrosPorPagina);
+  const ticketsPaginados = ticketsOrdenados.slice(
     (paginaActual - 1) * registrosPorPagina,
     paginaActual * registrosPorPagina
   );
@@ -146,133 +177,187 @@ export default function HistorialPage() {
           <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
             Historial 🗄️
           </h1>
-          <div className="bg-white px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-gray-500">
-            {ticketsFiltrados.length} Registros 🗂️
-          </div>
-        </div>
-
-        {/* PANEL DE FILTROS AL ESTILO NUEVO TICKET */}
-        <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-300 mb-8 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            
-            <div className="col-span-1 md:col-span-2 lg:col-span-2">
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Buscar texto</label>
-              <input 
-                type="text" 
-                placeholder="Sector, descripción, técnico, solicitante o solución..." 
-                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
-                value={filtroGeneral}
-                onChange={(e) => setFiltroGeneral(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Desde</label>
-              <input 
-                type="date" 
-                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
-                value={fechaInicio}
-                onChange={(e) => setFechaInicio(e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Hasta</label>
-              <input 
-                type="date" 
-                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
-                value={fechaFin}
-                onChange={(e) => setFechaFin(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Efector</label>
-              <select 
-                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
-                value={filtroUbicacion}
-                onChange={(e) => setFiltroUbicacion(e.target.value)}
-              >
-                <option value="">Todas</option>
-                {UBICACIONES.map(u => (
-                  <option key={u.id} value={u.id}>{u.nombre}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Sector</label>
-              <select 
-                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
-                value={filtroSector}
-                onChange={(e) => setFiltroSector(e.target.value)}
-              >
-                <option value="">Todos</option>
-                {sectoresUnicos.map(sector => (
-                  <option key={sector} value={sector}>{sector}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Categoría</label>
-              <select 
-                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
-                value={filtroCategoria}
-                onChange={(e) => setFiltroCategoria(e.target.value)}
-              >
-                <option value="">Todas</option>
-                {categorias.map(cat => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Urgencia</label>
-              <select 
-                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
-                value={filtroUrgencia}
-                onChange={(e) => setFiltroUrgencia(e.target.value)}
-              >
-                <option value="">Todas</option>
-                <option value="BAJA">Baja</option>
-                <option value="MEDIA">Media</option>
-                <option value="CRITICA">Crítica</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Asistencia</label>
-              <select 
-                className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
-                value={filtroAsistencia}
-                onChange={(e) => setFiltroAsistencia(e.target.value)}
-              >
-                <option value="">Todas</option>
-                <option value="PRESENCIAL">Presencial</option>
-                <option value="REMOTA">Remota</option>
-              </select>
-            </div>
-
-          </div>
-
-          <div className="flex justify-end pt-6 border-t border-gray-200">
+          <div className="flex items-center gap-3">
+            {/* BOTÓN PARA MOSTRAR/OCULTAR FILTROS */}
             <button
-              type="button"
-              onClick={limpiarFiltros}
-              className="px-6 py-3 bg-gray-100 text-slate-600 rounded-xl font-bold hover:bg-gray-200 transition-all uppercase text-xs tracking-widest border border-gray-300 shadow-sm"
+              onClick={() => setFiltrosVisibles(!filtrosVisibles)}
+              className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors shadow-sm flex items-center gap-2 ${
+                filtrosVisibles 
+                ? 'bg-white  text-slate-600 hover:bg-gray-50' 
+                : 'bg-white  text-slate-700 hover:bg-gray-50'
+              }`}
             >
-              Limpiar Filtros 🧹
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+              </svg>
+              {filtrosVisibles ? 'Ocultar Filtros' : 'Filtros'}
             </button>
+            <div className="bg-white px-4 py-2 rounded-xl shadow-sm border text-sm font-bold text-gray-500">
+              {ticketsOrdenados.length} Registros 🗂️
+            </div>
           </div>
         </div>
+
+        {/* PANEL DE FILTROS CONDICIONAL */}
+        {filtrosVisibles && (
+          <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-300 mb-8 space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              <div className="col-span-1 md:col-span-2 lg:col-span-2">
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Buscar texto</label>
+                <input 
+                  type="text" 
+                  placeholder="Sector, descripción, técnico, solicitante o solución..." 
+                  className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                  value={filtroGeneral}
+                  onChange={(e) => setFiltroGeneral(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Desde</label>
+                <input 
+                  type="date" 
+                  className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                  value={fechaInicio}
+                  onChange={(e) => setFechaInicio(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Hasta</label>
+                <input 
+                  type="date" 
+                  className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                  value={fechaFin}
+                  onChange={(e) => setFechaFin(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Efector</label>
+                <select 
+                  className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                  value={filtroUbicacion}
+                  onChange={(e) => setFiltroUbicacion(e.target.value)}
+                >
+                  <option value="">Todas</option>
+                  {UBICACIONES.map(u => (
+                    <option key={u.id} value={u.id}>{u.nombre}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Sector</label>
+                <select 
+                  className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                  value={filtroSector}
+                  onChange={(e) => setFiltroSector(e.target.value)}
+                >
+                  <option value="">Todos</option>
+                  {sectoresUnicos.map(sector => (
+                    <option key={sector} value={sector}>{sector}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Categoría</label>
+                <select 
+                  className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                  value={filtroCategoria}
+                  onChange={(e) => setFiltroCategoria(e.target.value)}
+                >
+                  <option value="">Todas</option>
+                  {categorias.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Urgencia</label>
+                <select 
+                  className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                  value={filtroUrgencia}
+                  onChange={(e) => setFiltroUrgencia(e.target.value)}
+                >
+                  <option value="">Todas</option>
+                  <option value="BAJA">Baja</option>
+                  <option value="MEDIA">Media</option>
+                  <option value="CRITICA">Crítica</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Asistencia</label>
+                <select 
+                  className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                  value={filtroAsistencia}
+                  onChange={(e) => setFiltroAsistencia(e.target.value)}
+                >
+                  <option value="">Todas</option>
+                  <option value="PRESENCIAL">Presencial</option>
+                  <option value="REMOTA">Remota</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Ordenar por</label>
+                <select 
+                  className="w-full p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                  value={ordenFecha}
+                  onChange={(e) => setOrdenFecha(e.target.value)}
+                >
+                  <option value="creacion_desc">Creación (Más recientes)</option>
+                  <option value="creacion_asc">Creación (Más antiguos)</option>
+                  <option value="cierre_desc">Cierre (Más recientes)</option>
+                  <option value="cierre_asc">Cierre (Más antiguos)</option>
+                </select>
+              </div>
+
+            </div>
+
+            <div className="flex justify-between gap-1 pt-6 border-t border-gray-200">
+               <button 
+              onClick={() => setSoloDestacados(!soloDestacados)}
+              className={`px-4 py-2 transition-colors flex items-center gap-2 p-3 border rounded-xl shadow-sm outline-none bg-white text-sm font-medium text-slate-700 ${
+                soloDestacados 
+                ? 'bg-amber-100 border-amber-300 text-amber-700 shadow-sm' 
+                : 'bg-white border-slate-200 text-slate-500 hover:bg-amber-50 hover:text-amber-600'
+              }`}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill={soloDestacados ? "currentColor" : "none"} 
+                viewBox="0 0 24 24" 
+                strokeWidth={2} 
+                stroke="currentColor" 
+                className="w-4 h-4"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499c.151-.316.604-.316.756 0l2.22 4.502 4.968.721c.354.051.496.489.24.741l-3.597 3.507 1.056 4.951c.075.354-.297.625-.615.457L12 15.698l-4.444 2.333c-.318.168-.693-.103-.615-.457l1.056-4.951-3.597-3.507c-.256-.252-.114-.69.24-.741l4.968-.721 2.22-4.502Z" />
+              </svg>
+              {soloDestacados ? 'Destacados' : 'Destacados'}
+            </button>
+              <button
+                type="button"
+                onClick={limpiarFiltros}
+                className="px-6 py-3 bg-gray-100 text-slate-600 rounded-xl font-bold hover:bg-gray-200 transition-all uppercase text-xs tracking-widest border border-gray-300 shadow-sm"
+              >
+                Limpiar Filtros 🧹
+              </button>
+              
+            </div>
+          </div>
+        )}
   
         <div className="bg-white shadow-sm rounded-xl border border-gray-300 overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-max text-sm">
             <thead>
               <tr className="bg-slate-800 text-white">
                 <th className="p-3 font-bold border-b border-slate-900">ID</th>
+                <th className="p-3 font-bold border-b border-slate-900 text-center">Acciones</th>
                 <th className="p-3 font-bold border-b border-slate-900 text-center">Guardia</th>
                 <th className="p-3 font-bold border-b border-slate-900">Creado</th>
                 <th className="p-3 font-bold border-b border-slate-900">Cerrado</th>
@@ -285,16 +370,15 @@ export default function HistorialPage() {
                 <th className="p-3 font-bold border-b border-slate-900">Urgencia</th>
                 <th className="p-3 font-bold border-b border-slate-900">Asistencia</th>
                 <th className="p-3 font-bold border-b border-slate-900">Descripción</th>
-                <th className="p-3 font-bold border-b border-slate-900">Solución</th>
+                <th className="p-3 font-bold border-b border-slate-900">Notas</th>
                 <th className="p-3 font-bold border-b border-slate-900">Total</th>
-                <th className="p-3 font-bold border-b border-slate-900 text-center">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {ticketsPaginados.length === 0 ? (
                 <tr>
                   <td colSpan={16} className="text-center py-20">
-                    <p className="text-gray-400 text-lg italic">No hay registros coincidentes.</p>
+                    <p className="text-gray-400 text-lg italic">Cargando registros...</p>
                   </td>
                 </tr>
               ) : (
@@ -312,45 +396,6 @@ export default function HistorialPage() {
                       }`}>
                         
                         <td className="p-3 align-top font-bold">#{t.id}</td>
-
-                        <td className="p-3 text-center align-top font-medium">
-                          {t.esGuardia ? "Sí" : "-"}
-                        </td>
-
-                        <td className="p-3 align-top">{formatearFecha(t.fechaCreacion)}</td>
-                        <td className="p-3 align-top">{formatearFecha(t.fechaCierre)}</td>
-                        <td className="p-3 align-top">{obtenerNombreUbicacion(t.ubicacion)}</td>
-                        <td className="p-3 align-top font-bold">{t.sector}</td>
-                        <td className="p-3 align-top font-medium">{t.interno || "-"}</td>
-                        <td className="p-3 align-top">{t.usuarioSolicita}</td>
-                        <td className="p-3 align-top">{t.tecnico}</td>
-                        <td className="p-3 align-top">{t.category?.name || "Gral"}</td>
-                        <td className="p-3 align-top">{t.urgencia}</td>
-                        <td className="p-3 align-top">{t.tipoAsistencia}</td>
-                        
-                        <td className="p-3 max-w-xs align-top">
-                          <div className={descAbierta ? "whitespace-normal" : "line-clamp-2"}>
-                            {t.descripcion}
-                          </div>
-                          {t.descripcion?.length > 50 && (
-                            <button onClick={() => alternarDescripcion(t.id)} className="text-blue-600 font-medium text-xs mt-1 hover:underline block">
-                              {descAbierta ? 'Ver menos' : 'Ver más'}
-                            </button>
-                          )}
-                        </td>
-
-                        <td className="p-3 max-w-xs align-top">
-                          <div className={descAbierta ? "whitespace-normal" : "line-clamp-2"}>
-                            {esEliminado ? "[TICKET ELIMINADO SIN SOLUCIÓN]" : (t.solucion || "-")}
-                          </div>
-                          {t.solucion?.length > 50 && !esEliminado && (
-                            <button onClick={() => alternarDescripcion(t.id)} className="text-blue-600 font-medium text-xs mt-1 hover:underline block">
-                              {descAbierta ? 'Ver menos' : 'Ver más'}
-                            </button>
-                          )}
-                        </td>
-
-                        <td className="p-3 align-top font-medium">{calcularDuracion(t.fechaCreacion, t.fechaCierre)}</td>
 
                         <td className="p-3 align-top">
                           <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
@@ -391,6 +436,46 @@ export default function HistorialPage() {
                             )}
                           </div>
                         </td>
+
+                        <td className="p-3 text-center align-top font-medium">
+                          {t.esGuardia ? "Sí" : "-"}
+                        </td>
+
+                        <td className="p-3 align-top">{formatearFecha(t.fechaCreacion)}</td>
+                        <td className="p-3 align-top">{formatearFecha(t.fechaCierre)}</td>
+                        <td className="p-3 align-top">{obtenerNombreUbicacion(t.ubicacion)}</td>
+                        <td className="p-3 align-top font-bold">{t.sector}</td>
+                        <td className="p-3 align-top font-medium">{t.interno || "-"}</td>
+                        <td className="p-3 align-top">{t.usuarioSolicita}</td>
+                        <td className="p-3 align-top">{t.tecnico}</td>
+                        <td className="p-3 align-top">{t.category?.name || "Gral"}</td>
+                        <td className="p-3 align-top">{t.urgencia}</td>
+                        <td className="p-3 align-top">{t.tipoAsistencia}</td>
+                        
+                        <td className="p-3 max-w-xs align-top">
+                          <div className={descAbierta ? "whitespace-normal" : "line-clamp-2"}>
+                            {t.descripcion}
+                          </div>
+                          {t.descripcion?.length > 50 && (
+                            <button onClick={() => alternarDescripcion(t.id)} className="text-blue-600 font-medium text-xs mt-1 hover:underline block">
+                              {descAbierta ? 'Ver menos' : 'Ver más'}
+                            </button>
+                          )}
+                        </td>
+
+                        <td className="p-3 max-w-xs align-top">
+                          <div className={descAbierta ? "whitespace-normal" : "line-clamp-2"}>
+                            {esEliminado ? "[TICKET ELIMINADO SIN SOLUCIÓN]" : (t.solucion || "-")}
+                          </div>
+                          {t.solucion?.length > 50 && !esEliminado && (
+                            <button onClick={() => alternarDescripcion(t.id)} className="text-blue-600 font-medium text-xs mt-1 hover:underline block">
+                              {descAbierta ? 'Ver menos' : 'Ver más'}
+                            </button>
+                          )}
+                        </td>
+
+                        <td className="p-3 align-top font-medium">{calcularDuracion(t.fechaCreacion, t.fechaCierre)}</td>
+
                       </tr>
 
                       {/* TRAYECTORIA */}

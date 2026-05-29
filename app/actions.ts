@@ -400,3 +400,15 @@ const parseFechaArgentina = (fechaStr: string) => {
   }
   return new Date(fechaStr);
 };
+
+export async function actualizarSolucionTicket(id: number, solucion: string) {
+  try {
+    await prisma.ticket.update({
+      where: { id },
+      data: { solucion }
+    });
+    revalidatePath('/'); // Ajustá esta ruta según cómo se llame tu página de pendientes
+  } catch (error) {
+    console.error("Error al guardar la nota:", error);
+  }
+}

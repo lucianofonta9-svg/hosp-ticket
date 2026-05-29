@@ -1,32 +1,41 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Timer from './Timer';
 import Link from 'next/link';
-import { eliminarTicket, cambiarEstadoTicket, alternarDestacadoTicket } from '../actions'; 
-// ESENCIAL: Importar las ubicaciones para traducir el ID numérico
+import { eliminarTicket, cambiarEstadoTicket, alternarDestacadoTicket, actualizarSolucionTicket } from '../actions'; 
 import { UBICACIONES } from '../../constants/ubicaciones';
 
 export default function TicketCard({ ticket, finalizarAction }: { ticket: any, finalizarAction: any }) {
-  const [expandido, setExpandido] = useState(false);
   const [mostrarLogs, setMostrarLogs] = useState(false);
   const [mounted, setMounted] = useState(false);
   
-  // Estado local para forzar el cambio visual inmediato de la estrella amarilla
   const [isDestacado, setIsDestacado] = useState(ticket.destacado);
+
+  const [nota, setNota] = useState(ticket.solucion || "");
+  const [guardandoNota, setGuardandoNota] = useState(false);
+
+  // Referencia para la caja de texto
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Sincronizar el estado local si las propiedades del ticket cambian desde el servidor
   useEffect(() => {
     setIsDestacado(ticket.destacado);
-  }, [ticket.destacado]);
+    setNota(ticket.solucion || "");
+  }, [ticket.destacado, ticket.solucion]);
 
-  const esLargo = ticket.descripcion.length > 80; 
+  // Efecto para ajustar dinámicamente la altura del textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [nota]);
+
   const esPausado = ticket?.estado === "PAUSADO";
 
-  // ESENCIAL: Traducir el ID al nombre real para la interfaz
   const obtenerNombreUbicacion = (idString: string) => {
     const idNumero = Number(idString);
     const lugar = UBICACIONES.find(u => u.id === idNumero);
@@ -46,10 +55,14 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
   };
 
   const manejarDestacado = async () => {
-    // Cambio visual inmediato en el cliente
     setIsDestacado(!isDestacado);
-    // Persistencia real en la base de datos de fondo
     await alternarDestacadoTicket(ticket.id, ticket.destacado);
+  };
+
+  const manejarGuardarNota = async () => {
+    setGuardandoNota(true);
+    await actualizarSolucionTicket(ticket.id, nota);
+    setGuardandoNota(false);
   };
 
   const formatearFechaCard = (fecha: Date | string) => {
@@ -70,19 +83,17 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
     }).format(new Date(fecha));
   };
   
-  // NUEVO: Función para determinar el color del borde según la urgencia
   const obtenerColorUrgencia = (urgencia: string, esGuardia: boolean) => {
     if (urgencia === "CRITICA") return "border-red-500";
     if (urgencia === "MEDIA") return "border-amber-500";
     if (urgencia === "BAJA") return "border-emerald-500";
-    // Si no tiene urgencia o es un ticket de guardia genérico, usa rojo o azul por defecto
     return esGuardia ? "border-red-600" : "border-blue-500";
   };
 
   return (
-    <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10 transition-all ${
+    <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10 transition-all h-full ${
       esPausado ? 'bg-gray-100 border-gray-400 opacity-80' : `bg-white ${obtenerColorUrgencia(ticket.urgencia, ticket.esGuardia)}`
-    } ${expandido || mostrarLogs ? 'h-auto' : 'h-70'}`}>
+    }`}>
       
       <div className="w-full">
         <div className="flex justify-between items-start ">
@@ -110,18 +121,34 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           {ticket.sector}
         </h2>
 
-        <p className={`text-sm leading-snug break-words ${esPausado ? 'text-gray-400 italic' : 'text-gray-600 italic'} ${!expandido ? 'line-clamp-2' : ''}`}>
+        {/* DESCRIPCIÓN COMPLETA SIEMPRE VISIBLE */}
+        <p className={`text-sm leading-snug break-words ${esPausado ? 'text-gray-400 italic' : 'text-gray-600 italic'}`}>
           "{ticket.descripcion}"
         </p>
 
-        {esLargo && (
-          <button 
-            onClick={() => setExpandido(!expandido)}
-            className="text-blue-600 text-[10px] font-bold mt-2 hover:underline uppercase block"
-          >
-            {expandido ? 'Ver menos -' : 'Ver más +'}
-          </button>
-        )}
+        {/* CAMPO DE NOTAS / SOLUCIÓN */}
+        <div className="mt-4">
+          <textarea
+            ref={textareaRef}
+            value={nota}
+            onChange={(e) => setNota(e.target.value)}
+            disabled={esPausado}
+            placeholder="Añade una nota aquí..."
+            className="w-full text-xs p-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white outline-none focus:ring-1 focus:ring-blue-400 resize-none transition-all placeholder:text-slate-400 text-slate-700 overflow-hidden"
+            rows={1}
+          />
+          {nota !== (ticket.solucion || "") && (
+            <div className="flex justify-end mt-1 animate-in fade-in">
+              <button
+                onClick={manejarGuardarNota}
+                disabled={guardandoNota}
+                className="text-[9px] bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded hover:bg-blue-200 transition-colors uppercase"
+              >
+                {guardandoNota ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* HISTORIAL CRONOLÓGICO */}
         {mostrarLogs && ticket.logs && (
@@ -194,7 +221,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
                 </svg>
               ) : (
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                  <path d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
                 </svg>
               )}
             </button>
@@ -239,11 +266,20 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
           </div>
         </div>
 
-        {/* Fila inferior unificada: Datos a la izquierda, botón a la derecha */}
-        <div className="flex justify-between items-end mt-2 pt-1">
-          <div className="flex flex-col gap-1">
-            <p className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none">Urgencia:
-              <span className={`px-1 py-0.2 rounded-full text-[9px] font-bold uppercase border ml-1 ${
+        <div className="flex justify-between items-end mt-0.5 pt-1">
+          <div className="flex flex-col gap-2">
+            
+            <p className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none flex items-center">
+              Solicitado por: <span className="text-slate-600 font-bold ml-1">{ticket.usuarioSolicita}</span>
+            </p>
+            
+            <p className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none flex items-center">
+              Creado por: <span className="text-slate-600 font-bold ml-1">{ticket.tecnico}</span>
+            </p>
+            
+            <p className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none flex items-center">
+              Urgencia:
+              <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase border ml-1 ${
                   ticket.urgencia === 'CRITICA' ? 'bg-red-100 text-red-700 border-red-200 animate-pulse' :
                   ticket.urgencia === 'MEDIA' ? 'bg-amber-100 text-amber-700 border-amber-200' :
                   'bg-emerald-100 text-emerald-700 border-emerald-200'
@@ -251,9 +287,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
                 {ticket.urgencia}
               </span>
             </p>
-            <p className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none">
-              Solicita: <span className="text-slate-600 font-bold">{ticket.usuarioSolicita}</span>
-            </p>
+            
           </div>
 
           {!esPausado && (
@@ -261,7 +295,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
               <input type="hidden" name="id" value={ticket.id} />
               <button 
                 type="submit"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold py-2 px-3 rounded-xl transition-all shadow-md active:scale-95 uppercase w-auto"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold py-2 px-3 rounded-xl transition-all shadow-md active:scale-95 uppercase w-auto mb-1"
               >
                 Finalizar
               </button>
