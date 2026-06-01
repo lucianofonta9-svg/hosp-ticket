@@ -371,7 +371,7 @@ export default function HistorialPage() {
                 <th className="p-3 font-bold border-b border-slate-900">Asistencia</th>
                 <th className="p-3 font-bold border-b border-slate-900">Descripción</th>
                 <th className="p-3 font-bold border-b border-slate-900">Notas</th>
-                <th className="p-3 font-bold border-b border-slate-900">Total</th>
+                <th className="p-3 font-bold border-b border-slate-900">Tiempo de resolución</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">

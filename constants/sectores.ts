@@ -89,7 +89,9 @@ export const DATOS_SECTORES = [
   { nombre: "Vigilancia", interno: ["14300"], ubicacionId: 1 },
   { nombre: "UCO", interno: ["14207"], ubicacionId: 1 },
   { nombre: "Consultorio", interno: ["-"], ubicacionId: 1 },
-
+  { nombre: "Hall PB", interno: ["-"], ubicacionId: 1 },
+  { nombre: "Hall 1º piso", interno: ["-"], ubicacionId: 1 },
+  { nombre: "Hall 2º piso", interno: ["-"], ubicacionId: 1 },
   // ANEXO
 
   { nombre: "Informatica", interno: ["14324"], ubicacionId: 2 },

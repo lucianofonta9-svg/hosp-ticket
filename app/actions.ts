@@ -412,3 +412,150 @@ export async function actualizarSolucionTicket(id: number, solucion: string) {
     console.error("Error al guardar la nota:", error);
   }
 }
+
+export async function obtenerDatosDashboard() {
+  try {
+    const agrupadosPorSector = await prisma.ticket.groupBy({
+      by: ['sector'],
+      _count: { id: true },
+    });
+    const topSectores = agrupadosPorSector
+      .map(s => ({ nombre: s.sector || "Sin sector", cantidad: s._count.id }))
+      .sort((a, b) => b.cantidad - a.cantidad)
+      .slice(0, 5);
+
+    const agrupadosPorUrgencia = await prisma.ticket.groupBy({
+      by: ['urgencia'],
+      _count: { id: true }
+    });
+    const graficoUrgencia = agrupadosPorUrgencia.map(u => ({ 
+      name: u.urgencia || "General", 
+      cantidad: u._count.id 
+    }));
+
+    // Agregamos tipoAsistencia, esGuardia y ubicacion al select
+    const todosLosTickets = await prisma.ticket.findMany({
+      select: {
+        fechaCreacion: true,
+        fechaCierre: true,
+        tecnico: true,
+        estado: true,
+        tipoAsistencia: true,
+        esGuardia: true,
+        ubicacion: true,
+        category: {
+          select: { name: true }
+        }
+      }
+    });
+
+    let tiempoTotalMs = 0;
+    let ticketsResueltos = 0;
+    let totalTickets = 0;
+    let ticketsGuardia = 0;
+    
+    const conteoPorTecnico: Record<string, { creados: number, cerrados: number }> = {};
+    const conteoPorMes: Record<string, number> = {};
+    const conteoPorCategoria: Record<string, number> = {};
+    const conteoAsistencia: Record<string, number> = {};
+    const conteoUbicacion: Record<string, number> = {};
+
+    todosLosTickets.forEach((t: any) => {
+      totalTickets++;
+      if (t.esGuardia) ticketsGuardia++;
+
+      let nombreTecnico = "Sin Técnico";
+      if (t.tecnico && typeof t.tecnico === 'string' && t.tecnico.trim() !== "") {
+          nombreTecnico = t.tecnico.trim();
+      }
+      
+      if (!conteoPorTecnico[nombreTecnico]) {
+        conteoPorTecnico[nombreTecnico] = { creados: 0, cerrados: 0 };
+      }
+      conteoPorTecnico[nombreTecnico].creados += 1;
+
+      if (t.fechaCierre || t.estado === "FINALIZADO" || t.estado === "ELIMINADO" || t.estado === "RESUELTO") {
+        conteoPorTecnico[nombreTecnico].cerrados += 1;
+        
+        if (t.fechaCreacion && t.fechaCierre) {
+           const inicio = new Date(t.fechaCreacion).getTime();
+           const fin = new Date(t.fechaCierre).getTime();
+           if (!isNaN(inicio) && !isNaN(fin) && fin >= inicio) {
+               tiempoTotalMs += (fin - inicio);
+               ticketsResueltos += 1;
+           }
+        }
+      }
+
+      if (t.fechaCreacion) {
+        const fecha = new Date(t.fechaCreacion);
+        if (!isNaN(fecha.getTime())) {
+            const year = fecha.getFullYear();
+            const month = String(fecha.getMonth() + 1).padStart(2, '0');
+            const monthKey = `${year}-${month}`; 
+            
+            if (!conteoPorMes[monthKey]) conteoPorMes[monthKey] = 0;
+            conteoPorMes[monthKey] += 1;
+        }
+      }
+
+      const nombreCategoria = t.category?.name || "General";
+      if (!conteoPorCategoria[nombreCategoria]) conteoPorCategoria[nombreCategoria] = 0;
+      conteoPorCategoria[nombreCategoria] += 1;
+
+      const asistencia = t.tipoAsistencia || "Sin definir";
+      if (!conteoAsistencia[asistencia]) conteoAsistencia[asistencia] = 0;
+      conteoAsistencia[asistencia] += 1;
+
+      const ubi = t.ubicacion || "Desconocida";
+      if (!conteoUbicacion[ubi]) conteoUbicacion[ubi] = 0;
+      conteoUbicacion[ubi] += 1;
+    });
+
+    let promedioResolucion = "Sin cierres registrados";
+    if (ticketsResueltos > 0) {
+      const horas = (tiempoTotalMs / ticketsResueltos) / (1000 * 60 * 60);
+      promedioResolucion = horas < 24 ? `${horas.toFixed(1)} hs` : `${(horas / 24).toFixed(1)} días`;
+    }
+
+    const porcentajeGuardia = totalTickets > 0 ? ((ticketsGuardia / totalTickets) * 100).toFixed(1) : "0";
+
+    const graficoTecnicos = Object.entries(conteoPorTecnico).map(([nombre, stats]) => ({
+      nombre, creados: stats.creados, cerrados: stats.cerrados
+    })).sort((a, b) => b.creados - a.creados);
+
+    const nombresMeses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    const graficoMeses = Object.entries(conteoPorMes)
+      .sort(([a], [b]) => a.localeCompare(b)) 
+      .map(([key, cantidad]) => {
+         const [year, month] = key.split('-');
+         const nombreMes = nombresMeses[parseInt(month, 10) - 1];
+         return { mes: `${nombreMes} ${year.slice(2)}`, cantidad };
+      });
+    if (graficoMeses.length === 1) graficoMeses.unshift({ mes: "Inicio", cantidad: 0 });
+
+    const graficoCategorias = Object.entries(conteoPorCategoria)
+      .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+      .sort((a, b) => b.cantidad - a.cantidad).slice(0, 10);
+
+    const graficoAsistencia = Object.entries(conteoAsistencia).map(([name, cantidad]) => ({ name, cantidad }));
+    
+    const graficoUbicacion = Object.entries(conteoUbicacion)
+      .map(([id, cantidad]) => ({ id, cantidad }))
+      .sort((a, b) => b.cantidad - a.cantidad);
+
+    return {
+      metricas: { promedioResolucion, porcentajeGuardia, ticketsGuardia },
+      graficoSector: topSectores,
+      graficoUrgencia,
+      graficoTecnicos,
+      graficoMeses,
+      graficoCategorias,
+      graficoAsistencia,
+      graficoUbicacion
+    };
+  } catch (error) {
+    console.error("Error al obtener datos del dashboard:", error);
+    return { error: true };
+  }
+}

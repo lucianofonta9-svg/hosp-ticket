@@ -37,8 +37,11 @@ export default async function Navbar() {
             
             {/* Centro: Contenedor de Píldora Oscura */}
             <div className="md:w-1/2 flex justify-center text-lg mb-6 md:mb-0 font-normal">
-              <div className="flex flex-col md:flex-row items-stretch md:items-center bg-slate-950 p-1.5 text-gray-200 rounded-2xl md:rounded-full border border-slate-800 shadow-inner gap-2 md:gap-1 w-full md:w-auto">
+              <div className="whitespace-nowrap flex flex-col md:flex-row items-stretch md:items-center bg-slate-950 p-1.5 text-gray-200 rounded-2xl md:rounded-full border border-slate-800 shadow-inner gap-2 md:gap-1 w-full md:w-auto">
+                
                 <BotonNav href="/" label="Pendientes" />
+                <BotonNav href="/dashboard" label="Dashboard" />
+                
                 <BotonNav href="/historial" label="Historial" />
                 <BotonNav href="/nuevo" label="Nuevo Ticket" />
               </div>
