@@ -92,6 +92,7 @@ export const DATOS_SECTORES = [
   { nombre: "Hall PB", interno: ["-"], ubicacionId: 1 },
   { nombre: "Hall 1º piso", interno: ["-"], ubicacionId: 1 },
   { nombre: "Hall 2º piso", interno: ["-"], ubicacionId: 1 },
+  
   // ANEXO
 
   { nombre: "Informatica", interno: ["14324"], ubicacionId: 2 },
@@ -140,25 +141,91 @@ export const DATOS_SECTORES = [
 
   // CENTROS DE SALUD
 
+  // CS1
   { nombre: "Consultorio", interno: ["14351"], ubicacionId: 3 },
+  { nombre: "Admisión", interno: [], ubicacionId: 3 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 3 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 3 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 3 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 3 },
 
+  // CS2
   { nombre: "Consultorio", interno: ["14352"], ubicacionId: 4 },
+  { nombre: "Admisión", interno: [], ubicacionId: 4 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 4 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 4 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 4 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 4 },
 
+  // CS3
   { nombre: "Consultorio", interno: ["14353"], ubicacionId: 5 },
+  { nombre: "Admisión", interno: [], ubicacionId: 5 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 5 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 5 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 5 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 5 },
 
+  // CS4
   { nombre: "Consultorio", interno: ["14354"], ubicacionId: 6 },
+  { nombre: "Admisión", interno: [], ubicacionId: 6 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 6 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 6 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 6 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 6 },
 
+  // CS5
   { nombre: "Consultorio", interno: ["14355"], ubicacionId: 7 },
+  { nombre: "Admisión", interno: [], ubicacionId: 7 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 7 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 7 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 7 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 7 },
 
+  // CS6
   { nombre: "Consultorio", interno: ["14356"], ubicacionId: 8 },
+  { nombre: "Admisión", interno: [], ubicacionId: 8 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 8 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 8 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 8 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 8 },
 
+  // CS7
   { nombre: "Consultorio", interno: ["13357"], ubicacionId: 9 },
+  { nombre: "Admisión", interno: [], ubicacionId: 9 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 9 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 9 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 9 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 9 },
 
+  // CS8
   { nombre: "Consultorio", interno: ["14358"], ubicacionId: 10 },
+  { nombre: "Admisión", interno: [], ubicacionId: 10 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 10 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 10 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 10 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 10 },
 
+  // CS9
   { nombre: "Consultorio", interno: ["14359"], ubicacionId: 11 },
+  { nombre: "Admisión", interno: [], ubicacionId: 11 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 11 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 11 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 11 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 11 },
 
+  // CS10
   { nombre: "Consultorio", interno: ["14360"], ubicacionId: 12 },
+  { nombre: "Admisión", interno: [], ubicacionId: 12 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 12 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 12 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 12 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 12 },
 
+  // CS11
   { nombre: "Consultorio", interno: ["14361"], ubicacionId: 13 },
+  { nombre: "Admisión", interno: [], ubicacionId: 13 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 13 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 13 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 13 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 13 },
 ];

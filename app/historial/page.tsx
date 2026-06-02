@@ -366,6 +366,7 @@ export default function HistorialPage() {
                 <th className="p-3 font-bold border-b border-slate-900">Interno</th>
                 <th className="p-3 font-bold border-b border-slate-900">Solicitante</th>
                 <th className="p-3 font-bold border-b border-slate-900">Técnico</th>
+                <th className="p-3 font-bold border-b border-slate-900">Cerrado por</th>
                 <th className="p-3 font-bold border-b border-slate-900">Categoría</th>
                 <th className="p-3 font-bold border-b border-slate-900">Urgencia</th>
                 <th className="p-3 font-bold border-b border-slate-900">Asistencia</th>
@@ -377,7 +378,7 @@ export default function HistorialPage() {
             <tbody className="divide-y divide-gray-200">
               {ticketsPaginados.length === 0 ? (
                 <tr>
-                  <td colSpan={16} className="text-center py-20">
+                  <td colSpan={17} className="text-center py-20">
                     <p className="text-gray-400 text-lg italic">Cargando registros...</p>
                   </td>
                 </tr>
@@ -448,6 +449,7 @@ export default function HistorialPage() {
                         <td className="p-3 align-top font-medium">{t.interno || "-"}</td>
                         <td className="p-3 align-top">{t.usuarioSolicita}</td>
                         <td className="p-3 align-top">{t.tecnico}</td>
+                        <td className="p-3 align-top">{t.tecnicoCierre || "-"}</td>
                         <td className="p-3 align-top">{t.category?.name || "Gral"}</td>
                         <td className="p-3 align-top">{t.urgencia}</td>
                         <td className="p-3 align-top">{t.tipoAsistencia}</td>
@@ -481,7 +483,7 @@ export default function HistorialPage() {
                       {/* TRAYECTORIA */}
                       {logsAbiertosFila && (
                         <tr className="bg-gray-50">
-                          <td colSpan={16} className="p-6 border-b border-gray-200">
+                          <td colSpan={17} className="p-6 border-b border-gray-200">
                             <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                               <p className="font-black text-slate-800 mb-4 border-b pb-2">
                                 Trayectoria del ticket #{t.id}
