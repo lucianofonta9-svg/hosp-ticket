@@ -22,10 +22,12 @@ export const DATOS_SECTORES = [
   { nombre: "Estadistica - Archivo", interno: ["14265"], ubicacionId: 1 },
   { nombre: "Esterelizacion", interno: ["14322"], ubicacionId: 1 },
   { nombre: "Facturacion", interno: ["14308", "14309"], ubicacionId: 1 },
+  { nombre: "Farmacia ", interno: [], ubicacionId: 1 },
   { nombre: "Farmacia - Dispensa Medicamentos", interno: ["14263"], ubicacionId: 1 },
   { nombre: "Farmacia - Esterelizacion", interno: ["14226"], ubicacionId: 1 },
   { nombre: "Farmacia Deposito", interno: ["14302", "14303", "14295"], ubicacionId: 1 },
   { nombre: "Farmacia Deposito Jefatura", interno: ["14304"], ubicacionId: 1 },
+  { nombre: "Guardia", interno: [], ubicacionId: 1 },
   { nombre: "Guardia - Admision", interno: ["14296", "14209"], ubicacionId: 1 },
   { nombre: "Guardia - Admision Ambulancia", interno: ["14269"], ubicacionId: 1 },
   { nombre: "Guardia - Enfermeria", interno: ["14218"], ubicacionId: 1 },
@@ -48,6 +50,7 @@ export const DATOS_SECTORES = [
   { nombre: "Lavadero", interno: ["14323"], ubicacionId: 1 },
   { nombre: "Legales", interno: ["14313"], ubicacionId: 1 },
   { nombre: "Mantenimiento", interno: ["14228"], ubicacionId: 1 },
+  { nombre: "Neonatologia", interno: [], ubicacionId: 1 },
   { nombre: "Neonatologia Estar Medico", interno: ["14252"], ubicacionId: 1 },
   { nombre: "Neonatologia Habitacion Med", interno: ["14275"], ubicacionId: 1 },
   { nombre: "Neonatologia Jefa Enfermeria", interno: ["14274"], ubicacionId: 1 },
@@ -58,8 +61,10 @@ export const DATOS_SECTORES = [
   { nombre: "Pediatria Internacion Office Enf.", interno: ["14258", "14257", "14250"], ubicacionId: 1 },
   { nombre: "Patologia", interno: ["14338"], ubicacionId: 1 },
   { nombre: "Quimioterapia", interno: ["14289"], ubicacionId: 1 },
+  { nombre: "Quirofano", interno: [], ubicacionId: 1 },
   { nombre: "Quirofano Estar Medico", interno: ["14234"], ubicacionId: 1 },
   { nombre: "Quirofano Office Enfermeria", interno: ["14230"], ubicacionId: 1 },
+  { nombre: "Rayos", interno: [], ubicacionId: 1 },
   { nombre: "Rayos Admision", interno: ["14212"], ubicacionId: 1 },
   { nombre: "Rayos Consola Tomografo", interno: ["14211"], ubicacionId: 1 },
   { nombre: "Rayos Sala de Comandos", interno: ["14216"], ubicacionId: 1 },
@@ -78,6 +83,7 @@ export const DATOS_SECTORES = [
   { nombre: "UTI Adulto - Estar Medico", interno: ["14246"], ubicacionId: 1 },
   { nombre: "UTI Informes Adulto", interno: ["14249"], ubicacionId: 1 },
   { nombre: "UTIP Informes", interno: ["14248"], ubicacionId: 1 },
+  { nombre: "UTPR", interno: [], ubicacionId: 1 },
   { nombre: "UTPR Consultorio A", interno: ["14236"], ubicacionId: 1 },
   { nombre: "UTPR Consultorio B", interno: ["14238"], ubicacionId: 1 },
   { nombre: "UTPR Estar Medico", interno: ["14242"], ubicacionId: 1 },
@@ -142,7 +148,8 @@ export const DATOS_SECTORES = [
   // CENTROS DE SALUD
 
   // CS1
-  { nombre: "Consultorio", interno: ["14351"], ubicacionId: 3 },
+  { nombre: "CS1", interno: ["14351"], ubicacionId: 3 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 3 },
   { nombre: "Admisión", interno: [], ubicacionId: 3 },
   { nombre: "Enfermeria", interno: [], ubicacionId: 3 },
   { nombre: "Odontologia", interno: [], ubicacionId: 3 },
@@ -150,7 +157,8 @@ export const DATOS_SECTORES = [
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 3 },
 
   // CS2
-  { nombre: "Consultorio", interno: ["14352"], ubicacionId: 4 },
+  { nombre: "CS2", interno: ["14352"], ubicacionId: 4 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 4 },
   { nombre: "Admisión", interno: [], ubicacionId: 4 },
   { nombre: "Enfermeria", interno: [], ubicacionId: 4 },
   { nombre: "Odontologia", interno: [], ubicacionId: 4 },
@@ -158,7 +166,8 @@ export const DATOS_SECTORES = [
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 4 },
 
   // CS3
-  { nombre: "Consultorio", interno: ["14353"], ubicacionId: 5 },
+  { nombre: "CS3", interno: ["14353"], ubicacionId: 5 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 5 },
   { nombre: "Admisión", interno: [], ubicacionId: 5 },
   { nombre: "Enfermeria", interno: [], ubicacionId: 5 },
   { nombre: "Odontologia", interno: [], ubicacionId: 5 },
@@ -166,7 +175,8 @@ export const DATOS_SECTORES = [
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 5 },
 
   // CS4
-  { nombre: "Consultorio", interno: ["14354"], ubicacionId: 6 },
+  { nombre: "CS4", interno: ["14354"], ubicacionId: 6 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 6 },
   { nombre: "Admisión", interno: [], ubicacionId: 6 },
   { nombre: "Enfermeria", interno: [], ubicacionId: 6 },
   { nombre: "Odontologia", interno: [], ubicacionId: 6 },
@@ -174,7 +184,8 @@ export const DATOS_SECTORES = [
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 6 },
 
   // CS5
-  { nombre: "Consultorio", interno: ["14355"], ubicacionId: 7 },
+  { nombre: "CS5", interno: ["14355"], ubicacionId: 7 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 7 },
   { nombre: "Admisión", interno: [], ubicacionId: 7 },
   { nombre: "Enfermeria", interno: [], ubicacionId: 7 },
   { nombre: "Odontologia", interno: [], ubicacionId: 7 },
@@ -182,7 +193,8 @@ export const DATOS_SECTORES = [
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 7 },
 
   // CS6
-  { nombre: "Consultorio", interno: ["14356"], ubicacionId: 8 },
+  { nombre: "CS6", interno: ["14356"], ubicacionId: 8 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 8 },
   { nombre: "Admisión", interno: [], ubicacionId: 8 },
   { nombre: "Enfermeria", interno: [], ubicacionId: 8 },
   { nombre: "Odontologia", interno: [], ubicacionId: 8 },
@@ -190,7 +202,8 @@ export const DATOS_SECTORES = [
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 8 },
 
   // CS7
-  { nombre: "Consultorio", interno: ["13357"], ubicacionId: 9 },
+  { nombre: "CS7", interno: ["13357"], ubicacionId: 9 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 9 },
   { nombre: "Admisión", interno: [], ubicacionId: 9 },
   { nombre: "Enfermeria", interno: [], ubicacionId: 9 },
   { nombre: "Odontologia", interno: [], ubicacionId: 9 },
@@ -198,7 +211,8 @@ export const DATOS_SECTORES = [
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 9 },
 
   // CS8
-  { nombre: "Consultorio", interno: ["14358"], ubicacionId: 10 },
+  { nombre: "CS8", interno: ["14358"], ubicacionId: 10 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 10 },
   { nombre: "Admisión", interno: [], ubicacionId: 10 },
   { nombre: "Enfermeria", interno: [], ubicacionId: 10 },
   { nombre: "Odontologia", interno: [], ubicacionId: 10 },
@@ -206,7 +220,8 @@ export const DATOS_SECTORES = [
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 10 },
 
   // CS9
-  { nombre: "Consultorio", interno: ["14359"], ubicacionId: 11 },
+  { nombre: "CS9", interno: ["14359"], ubicacionId: 11 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 11 },
   { nombre: "Admisión", interno: [], ubicacionId: 11 },
   { nombre: "Enfermeria", interno: [], ubicacionId: 11 },
   { nombre: "Odontologia", interno: [], ubicacionId: 11 },
@@ -214,7 +229,8 @@ export const DATOS_SECTORES = [
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 11 },
 
   // CS10
-  { nombre: "Consultorio", interno: ["14360"], ubicacionId: 12 },
+  { nombre: "CS10", interno: ["14360"], ubicacionId: 12 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 12 },
   { nombre: "Admisión", interno: [], ubicacionId: 12 },
   { nombre: "Enfermeria", interno: [], ubicacionId: 12 },
   { nombre: "Odontologia", interno: [], ubicacionId: 12 },
@@ -222,7 +238,8 @@ export const DATOS_SECTORES = [
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 12 },
 
   // CS11
-  { nombre: "Consultorio", interno: ["14361"], ubicacionId: 13 },
+  { nombre: "CS11", interno: ["14361"], ubicacionId: 13 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 13 },
   { nombre: "Admisión", interno: [], ubicacionId: 13 },
   { nombre: "Enfermeria", interno: [], ubicacionId: 13 },
   { nombre: "Odontologia", interno: [], ubicacionId: 13 },
