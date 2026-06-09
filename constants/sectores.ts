@@ -98,7 +98,7 @@ export const DATOS_SECTORES = [
   { nombre: "Hall PB", interno: ["-"], ubicacionId: 1 },
   { nombre: "Hall 1º piso", interno: ["-"], ubicacionId: 1 },
   { nombre: "Hall 2º piso", interno: ["-"], ubicacionId: 1 },
-  { nombre: "Anatomía Patológica", interno: ["14338"], ubicacionId: 2 },
+
 
   // ANEXO
 
