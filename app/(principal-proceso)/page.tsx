@@ -13,16 +13,16 @@ export default async function Home() {
             Pendientes 📌
           </h1>
 
-          <div className="flex gap-1.5">
-
-            <SyncTickets></SyncTickets>
-            <div className="bg-white px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-gray-500">
-              {tickets.length} <span className="hidden md:inline">Tickets Pendientes</span> ⏳
-            </div>
-
+          <div className="flex items-center gap-1.5">
+            <SyncTickets />
             
+            <div className="bg-white px-4 py-2 rounded-full shadow-sm border text-sm font-bold text-gray-500 flex items-center gap-1">
+              <span>{tickets.length}</span>
+              <span className="hidden md:inline">Tickets Pendientes</span>
+              <span>⏳</span>
+              
+            </div>
           </div>
-          
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">

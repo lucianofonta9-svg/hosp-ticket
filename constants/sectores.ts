@@ -98,7 +98,8 @@ export const DATOS_SECTORES = [
   { nombre: "Hall PB", interno: ["-"], ubicacionId: 1 },
   { nombre: "Hall 1º piso", interno: ["-"], ubicacionId: 1 },
   { nombre: "Hall 2º piso", interno: ["-"], ubicacionId: 1 },
-  
+  { nombre: "Anatomía Patológica", interno: ["14338"], ubicacionId: 2 },
+
   // ANEXO
 
   { nombre: "Informatica", interno: ["14324"], ubicacionId: 2 },
@@ -144,6 +145,7 @@ export const DATOS_SECTORES = [
   { nombre: "Otorrino", interno: ["14378"], ubicacionId: 2 },
   { nombre: "Certificados-Discapacidad", interno: ["14379"], ubicacionId: 2 },
   { nombre: "Consultorio", interno: ["-"], ubicacionId: 2 },
+  
 
   // CENTROS DE SALUD
 

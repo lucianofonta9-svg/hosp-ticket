@@ -21,10 +21,22 @@ export default function DashboardPage() {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    obtenerDatosDashboard().then((res) => {
-      setDatos(res);
-      setCargando(false);
-    });
+    
+    const cargarDatos = () => {
+      obtenerDatosDashboard().then((res) => {
+        setDatos(res);
+        setCargando(false);
+      });
+    };
+
+    
+    cargarDatos();
+
+    
+    const intervalo = setInterval(cargarDatos, 60000);
+
+    
+    return () => clearInterval(intervalo);
   }, []);
 
   const alternarPantallaCompleta = () => {
@@ -56,10 +68,10 @@ export default function DashboardPage() {
     <div className="h-screen w-full bg-gray-200 p-3 flex flex-col overflow-hidden font-sans">
       
       {/* CABECERA Y MÉTRICAS */}
-      <div className="flex justify-between items-center mb-3 h-14 shrink-0 px-2">
+      <div className="flex flex-col lg:flex-row justify-between items-center mb-3 h-auto lg:h-14 shrink-0 px-2 gap-2 lg:gap-0">
         <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Dashboard 📊</h1>
         
-        <div className="flex items-center gap-4 h-full">
+        <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-2 lg:gap-4 w-full lg:w-auto">
           <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-300 flex items-center gap-3">
             <span className="text-[10px] font-bold uppercase text-slate-400">Tiempo promedio de resolución</span>
             <span className="text-xl font-bold text-emerald-600">{datos.metricas.promedioResolucion}</span>
@@ -82,11 +94,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* GRILLA DE GRÁFICOS */}
-      <div className="flex-1 grid grid-cols-4 grid-rows-2 gap-3 min-h-0">
+      {/* GRILLA DE GRÁFICOS RESPONSIVA */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-3 min-h-0 overflow-y-auto lg:overflow-visible pb-10 lg:pb-0">
         
         {/* FILA 1 */}
-        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-0">
+        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[250px] lg:min-h-0">
           <h2 className="text-[10px] font-bold uppercase text-slate-500 tracking-tight text-center mb-1">Urgencia</h2>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
@@ -101,7 +113,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-0">
+        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[250px] lg:min-h-0">
           <h2 className="text-[10px] font-bold uppercase text-slate-500 tracking-tight text-center mb-1">Asistencia</h2>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
@@ -116,7 +128,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="col-span-2 bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-0">
+        <div className="lg:col-span-2 bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[250px] lg:min-h-0">
           <h2 className="text-[10px] font-bold uppercase text-slate-500 tracking-tight mb-1">Categorías mas frecuentes</h2>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
@@ -132,7 +144,7 @@ export default function DashboardPage() {
         </div>
 
         {/* FILA 2 */}
-        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-0">
+        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[250px] lg:min-h-0">
           <h2 className="text-[10px] font-bold uppercase text-slate-500 tracking-tight mb-1">Sectores con mas demanda</h2>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
@@ -146,7 +158,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-0">
+        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[250px] lg:min-h-0">
           <h2 className="text-[10px] font-bold uppercase text-slate-500 tracking-tight mb-1">Efectores con mas demanda</h2>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
@@ -160,7 +172,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-0">
+        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[250px] lg:min-h-0">
           <h2 className="text-[10px] font-bold uppercase text-slate-500 tracking-tight mb-1">Tickets creados/cerrados por técnico</h2>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
@@ -176,7 +188,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-0">
+        <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[250px] lg:min-h-0">
           <h2 className="text-[10px] font-bold uppercase text-slate-500 tracking-tight mb-1">Evolución Histórica</h2>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
