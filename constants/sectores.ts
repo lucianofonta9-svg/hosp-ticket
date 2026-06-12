@@ -247,4 +247,7 @@ export const DATOS_SECTORES = [
   { nombre: "Odontologia", interno: [], ubicacionId: 13 },
   { nombre: "Farmacia", interno: [], ubicacionId: 13 },
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 13 },
+
+// Nodo de salud Rafaela
+  { nombre: "Nodo de Salud Rafaela", interno: [""], ubicacionId: 14 },
 ];
