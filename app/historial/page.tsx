@@ -1,9 +1,8 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { obtenerHistorialTickets, eliminarTicket, reabrirTicket, alternarDestacadoTicket, obtenerCategorias } from '../actions';
 import { UBICACIONES } from '../../constants/ubicaciones';
-
 
 export default function HistorialPage() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -12,7 +11,7 @@ export default function HistorialPage() {
   const [descripcionesAbiertas, setDescripcionesAbiertas] = useState<number[]>([]);
 
   // Estados para los filtros
-  const [filtrosVisibles, setFiltrosVisibles] = useState(false); // Nuevo estado para ocultar/mostrar panel
+  const [filtrosVisibles, setFiltrosVisibles] = useState(false);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [filtroUbicacion, setFiltroUbicacion] = useState("");
   const [filtroCategoria, setFiltroCategoria] = useState("");
@@ -24,9 +23,13 @@ export default function HistorialPage() {
   const [soloDestacados, setSoloDestacados] = useState(false);
   const [ordenFecha, setOrdenFecha] = useState("creacion_desc");
 
-  // Estados para la paginación
+  // Estados paginación
   const [paginaActual, setPaginaActual] = useState(1);
   const registrosPorPagina = 50;
+
+  // Referencias para el scroll
+  const tablaRef = useRef<HTMLDivElement>(null);
+  const scrollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const cargarTickets = () => {
     obtenerHistorialTickets().then(setTickets);
@@ -37,7 +40,11 @@ export default function HistorialPage() {
     obtenerCategorias().then(setCategorias);
   }, []);
 
-  // Resetear a la página 1 cuando cambie cualquier filtro u orden
+  useEffect(() => {
+    return () => detenerScroll();
+  }, []);
+
+  // Reset página 1 cuando cambie cualquier filtro u orden
   useEffect(() => {
     setPaginaActual(1);
   }, [filtroGeneral, filtroUbicacion, filtroCategoria, filtroUrgencia, filtroSector, filtroAsistencia, fechaInicio, fechaFin, soloDestacados, ordenFecha]);
@@ -87,6 +94,25 @@ export default function HistorialPage() {
     return lugar ? lugar.nombre : "Desconocida";
   };
 
+  const iniciarScroll = (direccion: 'izq' | 'der') => {
+    if (scrollIntervalRef.current) return; 
+    scrollIntervalRef.current = setInterval(() => {
+      if (tablaRef.current) {
+        tablaRef.current.scrollBy({
+          left: direccion === 'izq' ? -20 : 20, 
+          behavior: 'auto' 
+        });
+      }
+    }, 25); 
+  };
+
+  const detenerScroll = () => {
+    if (scrollIntervalRef.current) {
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
+    }
+  };
+
   const sectoresUnicos = Array.from(new Set(tickets.map(t => t.sector))).sort();
 
   // 1. Filtrado de todos los datos
@@ -129,11 +155,8 @@ export default function HistorialPage() {
     if (ordenFecha === "creacion_asc") {
       return new Date(a.fechaCreacion).getTime() - new Date(b.fechaCreacion).getTime();
     }
-    
-    // Para fecha de cierre, manejamos posibles nulos poniéndolos al final o al principio
     const fechaCierreA = a.fechaCierre ? new Date(a.fechaCierre).getTime() : 0;
     const fechaCierreB = b.fechaCierre ? new Date(b.fechaCierre).getTime() : 0;
-    
     if (ordenFecha === "cierre_desc") {
       return fechaCierreB - fechaCierreA;
     }
@@ -145,8 +168,8 @@ export default function HistorialPage() {
     return 0;
   });
 
-  // 3. Paginación aplicada sobre los datos ya filtrados y ordenados
-  const totalPaginas = Math.ceil(ticketsOrdenados.length / registrosPorPagina);
+  // 3. Paginación
+  const totalPaginas = Math.ceil(ticketsOrdenados.length / registrosPorPagina) || 1;
   const ticketsPaginados = ticketsOrdenados.slice(
     (paginaActual - 1) * registrosPorPagina,
     paginaActual * registrosPorPagina
@@ -201,7 +224,7 @@ export default function HistorialPage() {
           </div>
         </div>
 
-        {/* PANEL DE FILTROS CONDICIONAL */}
+        {/*FILTROS */}
         {filtrosVisibles && (
           <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-300 mb-8 space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -331,14 +354,7 @@ export default function HistorialPage() {
                 : 'bg-white border-slate-200 text-slate-500 hover:bg-amber-50 hover:text-amber-600'
               }`}
             >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                fill={soloDestacados ? "currentColor" : "none"} 
-                viewBox="0 0 24 24" 
-                strokeWidth={2} 
-                stroke="currentColor" 
-                className="w-4 h-4"
-              >
+              <svg xmlns="http://www.w3.org/2000/svg" fill={soloDestacados ? "currentColor" : "none"} viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499c.151-.316.604-.316.756 0l2.22 4.502 4.968.721c.354.051.496.489.24.741l-3.597 3.507 1.056 4.951c.075.354-.297.625-.615.457L12 15.698l-4.444 2.333c-.318.168-.693-.103-.615-.457l1.056-4.951-3.597-3.507c-.256-.252-.114-.69.24-.741l4.968-.721 2.22-4.502Z" />
               </svg>
               {soloDestacados ? 'Destacados' : 'Destacados'}
@@ -355,11 +371,75 @@ export default function HistorialPage() {
           </div>
         )}
   
-        <div className="bg-white shadow-sm rounded-xl border border-gray-300 overflow-x-auto">
+        {/* BARRA SCROLL / PAGINACION*/}
+        <div className="sticky top-2 md:top-4 z-30 bg-white/90 backdrop-blur-md px-2 py-2 md:px-4 md:py-3 rounded-xl border border-gray-300 shadow-md mb-4 flex justify-between items-center transition-all gap-2">
+          {/* Scroll Izquierda */}
+          <button 
+            onMouseDown={() => iniciarScroll('izq')}
+            onMouseUp={detenerScroll}
+            onMouseLeave={detenerScroll}
+            onTouchStart={() => iniciarScroll('izq')}
+            onTouchEnd={detenerScroll}
+            className="p-2 md:p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors border border-gray-300 shadow-sm active:bg-slate-300" 
+            title="Mantener presionado para desplazar a la izquierda"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 md:w-5 md:h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+          </button>
+
+          {/* Paginación */}
+          <div className="flex items-center gap-1.5 md:gap-4">
+            <button
+              disabled={paginaActual === 1}
+              onClick={() => setPaginaActual(prev => Math.max(prev - 1, 1))}
+              className="p-2 md:px-4 md:py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 sm:hidden">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+              <span className="hidden sm:inline">Anterior</span>
+            </button>
+            
+            <span className="text-xs md:text-sm font-bold text-slate-800 tracking-tight bg-slate-100 px-3 py-2 md:px-4 md:py-2 rounded-lg border border-gray-200 shadow-inner whitespace-nowrap">
+              <span className="sm:hidden">{paginaActual} / {totalPaginas}</span>
+              <span className="hidden sm:inline">Página {paginaActual} de {totalPaginas}</span>
+            </span>
+
+            <button
+              disabled={paginaActual === totalPaginas}
+              onClick={() => setPaginaActual(prev => Math.min(prev + 1, totalPaginas))}
+              className="p-2 md:px-4 md:py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 sm:hidden">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+              <span className="hidden sm:inline">Siguiente</span>
+            </button>
+          </div>
+
+          {/* Scroll Derecha */}
+          <button 
+            onMouseDown={() => iniciarScroll('der')}
+            onMouseUp={detenerScroll}
+            onMouseLeave={detenerScroll}
+            onTouchStart={() => iniciarScroll('der')}
+            onTouchEnd={detenerScroll}
+            className="p-2 md:p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors border border-gray-300 shadow-sm active:bg-slate-300" 
+            title="Mantener presionado para desplazar a la derecha"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4 md:w-5 md:h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </button>
+        </div>
+
+        {/* TABLA */}
+        <div className="bg-white shadow-sm rounded-xl border border-gray-300 overflow-x-auto" ref={tablaRef}>
           <table className="w-full text-left border-collapse min-w-max text-sm">
             <thead>
               <tr className="bg-slate-800 text-white">
-                <th className="p-3 font-bold border-b border-slate-900">ID</th>
+                <th className="p-3 font-bold border-b border-r border-slate-900 sticky left-0 z-20 bg-slate-800">ID</th>
                 <th className="p-3 font-bold border-b border-slate-900 text-center">Acciones</th>
                 <th className="p-3 font-bold border-b border-slate-900 text-center">Guardia</th>
                 <th className="p-3 font-bold border-b border-slate-900">Creado</th>
@@ -393,13 +473,19 @@ export default function HistorialPage() {
 
                   return (
                     <React.Fragment key={t.id}>
-                      <tr className={`hover:bg-gray-50 transition-colors ${
-                        esEliminado ? 'bg-gray-200/60 opacity-60 text-gray-400' : 
-                        t.esGuardia ? 'bg-red-50/50 text-slate-800' : 
-                        t.destacado ? 'bg-amber-50/50 text-slate-800' : 'text-slate-800'
+                      <tr className={`group hover:bg-gray-50 transition-colors ${
+                        esEliminado ? 'bg-gray-100 text-gray-400' : 
+                        t.esGuardia ? 'bg-red-50 text-slate-800' : 
+                        t.destacado ? 'bg-amber-50 text-slate-800' : 'bg-white text-slate-800'
                       }`}>
                         
-                        <td className="p-3 align-top font-bold">#{t.id}</td>
+                        <td className={`p-3 align-top font-bold sticky left-0 z-10 border-r border-gray-200 transition-colors group-hover:bg-gray-50 ${
+                          esEliminado ? 'bg-gray-100' : 
+                          t.esGuardia ? 'bg-red-50' : 
+                          t.destacado ? 'bg-amber-50' : 'bg-white'
+                        }`}>
+                          #{t.id}
+                        </td>
 
                         <td className="p-3 align-top">
                           <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
@@ -486,7 +572,7 @@ export default function HistorialPage() {
                       {/* TRAYECTORIA */}
                       {logsAbiertosFila && (
                         <tr className="bg-gray-50">
-                          <td colSpan={17} className="p-6 border-b border-gray-200">
+                          <td colSpan={17} className="p-6 border-b border-gray-200 sticky left-0">
                             <div className="max-w-3xl mx-auto bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                               <p className="font-black text-slate-800 mb-4 border-b pb-2">
                                 Trayectoria del ticket #{t.id}
@@ -511,29 +597,6 @@ export default function HistorialPage() {
             </tbody>
           </table>
         </div>
-
-        {/* CONTROLES DE PAGINACIÓN */}
-        {totalPaginas > 1 && (
-          <div className="flex justify-between items-center mt-4 bg-white p-4 rounded-xl border border-gray-300 shadow-sm">
-            <button
-              disabled={paginaActual === 1}
-              onClick={() => setPaginaActual(prev => Math.max(prev - 1, 1))}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Anterior
-            </button>
-            <span className="text-sm font-medium text-slate-700">
-              Página {paginaActual} de {totalPaginas}
-            </span>
-            <button
-              disabled={paginaActual === totalPaginas}
-              onClick={() => setPaginaActual(prev => Math.min(prev + 1, totalPaginas))}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              Siguiente
-            </button>
-          </div>
-        )}
 
       </div>
     </div>
