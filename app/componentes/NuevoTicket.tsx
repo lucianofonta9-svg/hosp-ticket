@@ -192,7 +192,7 @@ export default function NuevoTicket() {
                 type="datetime-local" 
                 value={fechaHora}
                 onChange={(e) => setFechaHora(e.target.value)}
-                className="w-full p-2.5 md:p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-medium text-slate-700"
+                className="block w-full min-w-0 p-2.5 md:p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white text-xs md:text-sm font-medium text-slate-700"
               />
             </div>
             <div>
@@ -332,7 +332,7 @@ export default function NuevoTicket() {
                 type="datetime-local" 
                 value={fechaHoraCierre}
                 onChange={(e) => setFechaHoraCierre(e.target.value)}
-                className="w-full p-2.5 md:p-3 border border-emerald-400 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-white text-sm font-medium text-slate-700"
+                className="block w-full min-w-0 p-2.5 md:p-3 border border-emerald-400 rounded-xl shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none bg-white text-xs md:text-sm font-medium text-slate-700"
               />
             </div>
           )}
