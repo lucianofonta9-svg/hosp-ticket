@@ -6,20 +6,20 @@ export default function SyncTickets() {
   const router = useRouter();
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // 1. Lógica del refresco automático
+  // Lógica del actualizado automático
   useEffect(() => {
-    // setInterval ejecuta una función cada X milisegundos (45000 = 45 segundos)
+    // setInterval ejecuta una función cada X milisegundos 
     const intervalo = setInterval(() => {
       router.refresh(); 
-    }, 45000); 
+    }, 45000); // 45 segs
 
-    // Limpiamos el intervalo si el componente se desmonta para evitar fugas de memoria
+    // limpieza del intervalo
     return () => clearInterval(intervalo);
   }, [router]);
 
-  // 2. Lógica del botón manual
+  // Lógica del botón manual
   const handleManualSync = () => {
-    setIsSyncing(true); // Activa la animación de carga
+    setIsSyncing(true); // animación de carga
     
     // router.refresh() le pide al servidor de Next.js que vuelva a ejecutar 
     // las consultas de base de datos de la página actual sin recargar el navegador

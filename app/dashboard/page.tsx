@@ -19,25 +19,31 @@ const COLORES_ASISTENCIA: Record<string, string> = {
 export default function DashboardPage() {
   const [datos, setDatos] = useState<any>(null);
   const [cargando, setCargando] = useState(true);
+  
+  //logica para estalecer mes actual por defecto
+  const [fechaDesde, setFechaDesde] = useState(() => {
+    const hoy = new Date();
+    return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-01`;
+  });
+  
+  const [fechaHasta, setFechaHasta] = useState(() => {
+    const hoy = new Date();
+    return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+  });
 
   useEffect(() => {
-    
     const cargarDatos = () => {
-      obtenerDatosDashboard().then((res) => {
+      obtenerDatosDashboard(fechaDesde, fechaHasta).then((res) => {
         setDatos(res);
         setCargando(false);
       });
     };
 
-    
     cargarDatos();
-
-    
     const intervalo = setInterval(cargarDatos, 60000);
 
-    
     return () => clearInterval(intervalo);
-  }, []);
+  }, [fechaDesde, fechaHasta]);
 
   const alternarPantallaCompleta = () => {
     if (!document.fullscreenElement) {
@@ -47,7 +53,7 @@ export default function DashboardPage() {
     }
   };
 
-  if (cargando) {
+  if (cargando && !datos) {
     return <div className="h-screen w-screen bg-gray-900 flex justify-center items-center font-bold text-slate-400 font-sans">Cargando métricas...</div>;
   }
 
@@ -67,11 +73,35 @@ export default function DashboardPage() {
   return (
     <div className="h-screen w-full bg-gray-200 p-3 flex flex-col overflow-hidden font-sans">
       
-      {/* CABECERA Y MÉTRICAS */}
-      <div className="flex flex-col lg:flex-row justify-between items-center mb-3 h-auto lg:h-14 shrink-0 px-2 gap-2 lg:gap-0">
+      {/* metricas */}
+      <div className="flex flex-col lg:flex-row justify-between items-center mb-3 h-auto shrink-0 px-2 gap-3 lg:gap-0">
         <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Dashboard 📊</h1>
         
         <div className="flex flex-wrap lg:flex-nowrap items-center justify-center gap-2 lg:gap-4 w-full lg:w-auto">
+          
+          {/* inputs fecha */}
+          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl shadow-sm border border-gray-300">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase text-slate-400 leading-none mb-1">Desde</span>
+              <input 
+                type="date" 
+                value={fechaDesde} 
+                onChange={(e) => setFechaDesde(e.target.value)} 
+                className="text-xs font-medium outline-none text-slate-700 bg-transparent cursor-pointer"
+              />
+            </div>
+            <span className="text-slate-300">|</span>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase text-slate-400 leading-none mb-1">Hasta</span>
+              <input 
+                type="date" 
+                value={fechaHasta} 
+                onChange={(e) => setFechaHasta(e.target.value)} 
+                className="text-xs font-medium outline-none text-slate-700 bg-transparent cursor-pointer"
+              />
+            </div>
+          </div>
+
           <div className="bg-white px-4 py-2 rounded-xl shadow-sm border border-gray-300 flex items-center gap-3">
             <span className="text-[10px] font-bold uppercase text-slate-400">Tiempo promedio de resolución</span>
             <span className="text-xl font-bold text-emerald-600">{datos.metricas.promedioResolucion}</span>
@@ -94,10 +124,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* GRILLA DE GRÁFICOS RESPONSIVA */}
+      {/* tabla de graficos  */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 lg:grid-rows-2 gap-3 min-h-0 overflow-y-auto lg:overflow-visible pb-10 lg:pb-0">
         
-        {/* FILA 1 */}
+        {/* fila 1 */}
         <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[250px] lg:min-h-0">
           <h2 className="text-[10px] font-bold uppercase text-slate-500 tracking-tight text-center mb-1">Urgencia</h2>
           <div className="flex-1 min-h-0">
@@ -143,7 +173,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* FILA 2 */}
+        {/* fila 2 */}
         <div className="bg-white p-3 rounded-xl shadow-sm border border-gray-200 flex flex-col min-h-[250px] lg:min-h-0">
           <h2 className="text-[10px] font-bold uppercase text-slate-500 tracking-tight mb-1">Sectores con mas demanda</h2>
           <div className="flex-1 min-h-0">

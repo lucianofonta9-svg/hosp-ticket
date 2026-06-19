@@ -115,7 +115,7 @@ export default function HistorialPage() {
 
   const sectoresUnicos = Array.from(new Set(tickets.map(t => t.sector))).sort();
 
-  // 1. Filtrado de todos los datos
+  // Filtrado de todos los datos
   const ticketsFiltrados = tickets.filter(t => {
     const coincideGeneral = filtroGeneral === "" || 
       t.sector.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
@@ -147,7 +147,7 @@ export default function HistorialPage() {
     return coincideGeneral && coincideUbicacion && coincideCategoria && coincideUrgencia && coincideSector && coincideAsistencia && coincideDestacado && coincideFecha;
   });
 
-  // 2. Ordenamiento de los datos filtrados
+  //  Ordenamiento de los datos filtrados
   const ticketsOrdenados = [...ticketsFiltrados].sort((a, b) => {
     if (ordenFecha === "creacion_desc") {
       return new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime();
@@ -168,7 +168,7 @@ export default function HistorialPage() {
     return 0;
   });
 
-  // 3. Paginación
+  //  Paginación
   const totalPaginas = Math.ceil(ticketsOrdenados.length / registrosPorPagina) || 1;
   const ticketsPaginados = ticketsOrdenados.slice(
     (paginaActual - 1) * registrosPorPagina,
@@ -201,7 +201,7 @@ export default function HistorialPage() {
             Historial 🗄️
           </h1>
           <div className="flex items-center gap-3">
-            {/* BOTÓN PARA MOSTRAR/OCULTAR FILTROS */}
+            {/*boton para mostrar filtros */}
             <button
               onClick={() => setFiltrosVisibles(!filtrosVisibles)}
               className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors shadow-sm flex items-center gap-2 ${
@@ -224,7 +224,7 @@ export default function HistorialPage() {
           </div>
         </div>
 
-        {/*FILTROS */}
+        {/*filtros */}
         {filtrosVisibles && (
           <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-300 mb-8 space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -371,7 +371,7 @@ export default function HistorialPage() {
           </div>
         )}
   
-        {/* BARRA SCROLL / PAGINACION*/}
+        {/* scroll y paginación */}
         <div className="sticky top-2 md:top-4 z-30 bg-white/90 backdrop-blur-md px-2 py-2 md:px-4 md:py-3 rounded-xl border border-gray-300 shadow-md mb-4 flex justify-between items-center transition-all gap-2">
           {/* Scroll Izquierda */}
           <button 
@@ -388,7 +388,7 @@ export default function HistorialPage() {
             </svg>
           </button>
 
-          {/* Paginación */}
+          {/* paginación */}
           <div className="flex items-center gap-1.5 md:gap-4">
             <button
               disabled={paginaActual === 1}
@@ -434,7 +434,7 @@ export default function HistorialPage() {
           </button>
         </div>
 
-        {/* TABLA */}
+        {/* Tabla */}
         <div className="bg-white shadow-sm rounded-xl border border-gray-300 overflow-x-auto" ref={tablaRef}>
           <table className="w-full text-left border-collapse min-w-max text-sm">
             <thead>

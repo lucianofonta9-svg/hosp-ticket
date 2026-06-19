@@ -395,7 +395,7 @@ export async function alternarDestacadoTicket(id: number, estadoActual: boolean)
 
 const parseFechaArgentina = (fechaStr: string) => {
   if (fechaStr && fechaStr.includes('T') && fechaStr.length === 16) {
-    // Convierte "YYYY-MM-DDTHH:mm" a "YYYY-MM-DDTHH:mm:00-03:00" para forzar hora AR
+    // ajuste de hora por servidor 
     return new Date(`${fechaStr}:00-03:00`);
   }
   return new Date(fechaStr);
@@ -407,16 +407,30 @@ export async function actualizarSolucionTicket(id: number, solucion: string) {
       where: { id },
       data: { solucion }
     });
-    revalidatePath('/'); // Ajustá esta ruta según cómo se llame tu página de pendientes
+    revalidatePath('/'); 
   } catch (error) {
     console.error("Error al guardar la nota:", error);
   }
 }
-
-export async function obtenerDatosDashboard() {
+export async function obtenerDatosDashboard(fechaDesde?: string, fechaHasta?: string) {
   try {
+    // armamos el filtro dinámico de fechas
+    let filtroWhere: any = {};
+    
+    if (fechaDesde || fechaHasta) {
+      filtroWhere.fechaCreacion = {};
+      if (fechaDesde) {
+        filtroWhere.fechaCreacion.gte = new Date(`${fechaDesde}T00:00:00`);
+      }
+      if (fechaHasta) {
+        filtroWhere.fechaCreacion.lte = new Date(`${fechaHasta}T23:59:59`);
+      }
+    }
+
+    //  filtro de consultas
     const agrupadosPorSector = await prisma.ticket.groupBy({
       by: ['sector'],
+      where: filtroWhere,
       _count: { id: true },
     });
     const topSectores = agrupadosPorSector
@@ -426,6 +440,7 @@ export async function obtenerDatosDashboard() {
 
     const agrupadosPorUrgencia = await prisma.ticket.groupBy({
       by: ['urgencia'],
+      where: filtroWhere,
       _count: { id: true }
     });
     const graficoUrgencia = agrupadosPorUrgencia.map(u => ({ 
@@ -433,8 +448,8 @@ export async function obtenerDatosDashboard() {
       cantidad: u._count.id 
     }));
 
-    // Agregamos tipoAsistencia, esGuardia y ubicacion al select
     const todosLosTickets = await prisma.ticket.findMany({
+      where: filtroWhere,
       select: {
         fechaCreacion: true,
         fechaCierre: true,
