@@ -91,7 +91,7 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
   };
 
   return (
-    <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10 transition-all h-full ${
+    <div className={`flex flex-col justify-between p-5 rounded-2xl shadow-sm border-l-10 transition-all h-fit self-start ${
       esPausado ? 'bg-gray-100 border-gray-400 opacity-80' : `bg-white ${obtenerColorUrgencia(ticket.urgencia, ticket.esGuardia)}`
     }`}>
       
