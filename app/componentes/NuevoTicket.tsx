@@ -163,7 +163,7 @@ export default function NuevoTicket() {
     const res = editId ? await actualizarTicket(Number(editId), datos) : await registrarTicket(datos);
 
     if (res.success) {
-      router.push('/'); 
+     
       router.refresh(); 
     } else {
       alert("Error al procesar la solicitud.");
