@@ -248,6 +248,15 @@ export const DATOS_SECTORES = [
   { nombre: "Farmacia", interno: [], ubicacionId: 13 },
   { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 13 },
 
+    // CS12
+  { nombre: "CS12", interno: [""], ubicacionId: 15 },
+  { nombre: "Consultorio", interno: [], ubicacionId: 15 },
+  { nombre: "Admisión", interno: [], ubicacionId: 15 },
+  { nombre: "Enfermeria", interno: [], ubicacionId: 15 },
+  { nombre: "Odontologia", interno: [], ubicacionId: 15 },
+  { nombre: "Farmacia", interno: [], ubicacionId: 15 },
+  { nombre: "Consultorio - Salud Mental", interno: [], ubicacionId: 15 },
+
 // Nodo de salud Rafaela
   { nombre: "Nodo de Salud Rafaela", interno: [""], ubicacionId: 14 },
 ];
