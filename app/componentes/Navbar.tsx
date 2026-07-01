@@ -8,7 +8,7 @@ export default async function Navbar() {
   if (!session) return null;
 
   return (
-    <nav className="bg-slate-900 text-gray-200 shadow-md border-b border-slate-700 relative z-50">
+    <nav  className="print:hidden bg-slate-900 text-gray-200 shadow-md border-b border-slate-700 relative z-50">
       <div className="max-w-7xl mx-auto px-4 md:px-2">
         <div className="flex items-center justify-between md:justify-start h-16 w-full">
           
