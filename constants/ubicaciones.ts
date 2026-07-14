@@ -14,4 +14,5 @@ export const UBICACIONES = [
   { id: 13, nombre: "Centro de Salud 11" },
   { id: 15, nombre: "Centro de Salud 12" },
   { id: 14, nombre: "Nodo de Salud Rafaela" },
+  { id: 15, nombre: "Salud Laboral" },
 ];
