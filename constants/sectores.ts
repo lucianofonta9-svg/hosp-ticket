@@ -261,5 +261,5 @@ export const DATOS_SECTORES = [
   { nombre: "Nodo de Salud Rafaela", interno: [""], ubicacionId: 14 },
 
 // Salud Laboral
-  { nombre: "Administración", interno: [""], ubicacionId: 15 },
+  { nombre: "Administración", interno: [""], ubicacionId: 16 },
 ];
