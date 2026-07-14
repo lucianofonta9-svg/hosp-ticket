@@ -262,4 +262,9 @@ export const DATOS_SECTORES = [
 
 // Salud Laboral
   { nombre: "Administración", interno: [""], ubicacionId: 16 },
+
+// Pueblos
+  { nombre: "", interno: [""], ubicacionId: 17 },
+
 ];
+

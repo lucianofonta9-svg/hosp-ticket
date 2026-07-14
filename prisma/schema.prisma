@@ -9,11 +9,12 @@ datasource db {
 
 model Ticket {
   id              Int            @id @default(autoincrement())
-  sector          String
+  sector          String?        // <--- CAMBIO 1: Ahora es opcional
   interno         String?
   categoryId      Int
   category        Category       @relation(fields: [categoryId], references: [id])
   ubicacion       String   
+  nombrePueblo    String?        // <--- CAMBIO 2: Campo nuevo opcional
   usuarioSolicita String 
   descripcion     String
   esGuardia       Boolean        @default(false)

@@ -15,8 +15,9 @@ const prisma = globalForPrisma.prisma ?? new PrismaClient();
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 export async function registrarTicket(datos: {
-  sector: string;
-  interno: string;
+  sector?: string | null;
+  nombrePueblo?: string | null;
+  interno?: string;
   categoryId: number;
   ubicacion: string; 
   usuarioSolicita: string; 
@@ -44,6 +45,7 @@ export async function registrarTicket(datos: {
       ? (datos.fechaCierreManual ? parseFechaArgentina(datos.fechaCierreManual) : new Date())
       : null;
 
+    // Si sector es null (porque es un pueblo), sectorEncontrado será undefined, lo cual es seguro.
     const sectorEncontrado = DATOS_SECTORES.find(
       s => s.nombre === datos.sector && s.ubicacionId === Number(datos.ubicacion)
     );
@@ -51,7 +53,8 @@ export async function registrarTicket(datos: {
 
     await prisma.ticket.create({
       data: {
-        sector: datos.sector,
+        sector: datos.sector || null,
+        nombrePueblo: datos.nombrePueblo || null,
         interno: internosFormateados, 
         categoryId: Number(datos.categoryId),
         ubicacion: datos.ubicacion,
@@ -209,7 +212,8 @@ export async function actualizarTicket(id: number, data: any) {
     const internosFormateados = sectorEncontrado?.interno?.join(" - ") || "";
 
     const datosActualizacion: any = {
-      sector: data.sector,
+      sector: data.sector || null,
+      nombrePueblo: data.nombrePueblo || null,
       interno: internosFormateados, 
       category: { 
         connect: { id: Number(data.categoryId) } 
@@ -395,7 +399,6 @@ export async function alternarDestacadoTicket(id: number, estadoActual: boolean)
 
 const parseFechaArgentina = (fechaStr: string) => {
   if (fechaStr && fechaStr.includes('T') && fechaStr.length === 16) {
-    // ajuste de hora por servidor 
     return new Date(`${fechaStr}:00-03:00`);
   }
   return new Date(fechaStr);
@@ -414,7 +417,6 @@ export async function actualizarSolucionTicket(id: number, solucion: string) {
 }
 export async function obtenerDatosDashboard(fechaDesde?: string, fechaHasta?: string) {
   try {
-    // armamos el filtro dinámico de fechas
     let filtroWhere: any = {};
     
     if (fechaDesde || fechaHasta) {
@@ -427,7 +429,6 @@ export async function obtenerDatosDashboard(fechaDesde?: string, fechaHasta?: st
       }
     }
 
-    //  filtro de consultas
     const agrupadosPorSector = await prisma.ticket.groupBy({
       by: ['sector'],
       where: filtroWhere,

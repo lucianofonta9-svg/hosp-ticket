@@ -23,6 +23,7 @@ export default function NuevoTicket() {
   const [fechaHoraCierre, setFechaHoraCierre] = useState(obtenerFechaHoraLocalActual()); 
   const [tieneCierre, setTieneCierre] = useState(false); 
   const [sectorSeleccionado, setSectorSeleccionado] = useState("");
+  const [nombrePueblo, setNombrePueblo] = useState(""); // NUEVO ESTADO
   const [categoriaId, setCategoriaId] = useState("");
   const [ubicacionId, setUbicacionId] = useState<number | "">(""); 
   const [usuarioSolicita, setUsuarioSolicita] = useState(""); 
@@ -39,8 +40,12 @@ export default function NuevoTicket() {
   const [nuevaCatNombre, setNuevaCatNombre] = useState("");
   const [mostrandoInputCat, setMostrandoInputCat] = useState(false);
 
+  // Verificamos si la ubicación seleccionada es "Pueblo"
+  const esPueblo = ubicacionId !== "" && UBICACIONES.find(u => u.id === ubicacionId)?.nombre.toLowerCase() === "pueblo";
+
   const limpiarFormulario = () => {
     setSectorSeleccionado("");
+    setNombrePueblo("");
     setCategoriaId("");
     setUbicacionId(""); 
     setUsuarioSolicita(""); 
@@ -74,7 +79,8 @@ export default function NuevoTicket() {
       obtenerTicketPorId(editId).then((ticket: any) => {
         if (ticket) {
           setUbicacionId(Number(ticket.ubicacion) || ""); 
-          setSectorSeleccionado(ticket.sector);
+          setSectorSeleccionado(ticket.sector || "");
+          setNombrePueblo(ticket.nombrePueblo || "");
           setCategoriaId(ticket.categoryId?.toString() || "");
           setUsuarioSolicita(ticket.usuarioSolicita || ""); 
           setDescripcion(ticket.descripcion);
@@ -109,11 +115,17 @@ export default function NuevoTicket() {
     setUbicacionId(nuevaUbicacionId);
     
     if (nuevaUbicacionId !== "") {
-      const sectoresDeUbicacion = DATOS_SECTORES.filter(s => s.ubicacionId === nuevaUbicacionId);
-      if (sectoresDeUbicacion.length === 1) {
-        setSectorSeleccionado(sectoresDeUbicacion[0].nombre);
+      const isPuebloActual = UBICACIONES.find(u => u.id === nuevaUbicacionId)?.nombre.toLowerCase() === "pueblo";
+      
+      if (isPuebloActual) {
+        setSectorSeleccionado(""); // Limpiamos sector si es pueblo
       } else {
-        setSectorSeleccionado("");
+        const sectoresDeUbicacion = DATOS_SECTORES.filter(s => s.ubicacionId === nuevaUbicacionId);
+        if (sectoresDeUbicacion.length === 1) {
+          setSectorSeleccionado(sectoresDeUbicacion[0].nombre);
+        } else {
+          setSectorSeleccionado("");
+        }
       }
     } else {
       setSectorSeleccionado("");
@@ -134,17 +146,28 @@ export default function NuevoTicket() {
   };
 
   const manejarGuardado = async () => {
-    if (ubicacionId === "" || !sectorSeleccionado || !categoriaId) {
+    // Validaciones diferenciadas
+    if (ubicacionId === "" || !categoriaId) {
         return alert("Por favor, complete todos los campos obligatorios.");
     }
+    
+    if (esPueblo && !nombrePueblo.trim()) {
+        return alert("Por favor, ingrese el nombre del pueblo.");
+    }
 
-    const sectorEncontrado = DATOS_SECTORES.find(
+    if (!esPueblo && !sectorSeleccionado) {
+        return alert("Por favor, seleccione un sector.");
+    }
+
+    const sectorEncontrado = !esPueblo ? DATOS_SECTORES.find(
       (s: any) => s.nombre === sectorSeleccionado && s.ubicacionId === Number(ubicacionId)
-    );
+    ) : null;
+    
     const internoAutomatico = sectorEncontrado?.interno ? sectorEncontrado.interno.join(" - ") : "";
 
     const datos = {
-      sector: sectorSeleccionado,
+      sector: esPueblo ? null : sectorSeleccionado,
+      nombrePueblo: esPueblo ? nombrePueblo.trim() : null,
       interno: internoAutomatico, 
       categoryId: parseInt(categoriaId),
       ubicacion: ubicacionId.toString(), 
@@ -163,8 +186,9 @@ export default function NuevoTicket() {
     const res = editId ? await actualizarTicket(Number(editId), datos) : await registrarTicket(datos);
 
     if (res.success) {
-      alert("Ticket Creado con éxito");
-      limpiarFormulario()
+      alert("Ticket procesado con éxito");
+      limpiarFormulario();
+      if (editId) router.push('/');
     } else {
       alert("Error al procesar la solicitud.");
     }
@@ -221,24 +245,40 @@ export default function NuevoTicket() {
                 ))}
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Sector</label>
-              <select 
-                value={sectorSeleccionado}
-                onChange={(e) => setSectorSeleccionado(e.target.value)}
-                disabled={ubicacionId === "" || esUnicoSector}
-                className={`w-full p-2.5 md:p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium text-slate-700 ${ubicacionId === "" || esUnicoSector ? 'cursor-not-allowed bg-gray-100 text-slate-500' : 'bg-white'}`}
-              >
-                <option value="">
-                  {ubicacionId === "" ? "Primero seleccione efector..." : "Seleccione sector..."}
-                </option>
-                {sectoresFiltrados.map(s => (
-                  <option key={s.nombre} value={s.nombre}>{s.nombre}</option>
-                ))}
-              </select>
-            </div>
+
+            {/* RENDERIZADO CONDICIONAL DE SECTOR / PUEBLO */}
+            {esPueblo ? (
+              <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Nombre del Pueblo</label>
+                <input 
+                  type="text" 
+                  value={nombrePueblo}
+                  onChange={(e) => setNombrePueblo(e.target.value)}
+                  placeholder="Ej: Susana, Lehmann..."
+                  className="w-full p-2.5 md:p-3 border border-blue-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none bg-blue-50 text-sm font-medium text-slate-800"
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Sector</label>
+                <select 
+                  value={sectorSeleccionado}
+                  onChange={(e) => setSectorSeleccionado(e.target.value)}
+                  disabled={ubicacionId === "" || esUnicoSector}
+                  className={`w-full p-2.5 md:p-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium text-slate-700 ${ubicacionId === "" || esUnicoSector ? 'cursor-not-allowed bg-gray-100 text-slate-500' : 'bg-white'}`}
+                >
+                  <option value="">
+                    {ubicacionId === "" ? "Primero seleccione efector..." : "Seleccione sector..."}
+                  </option>
+                  {sectoresFiltrados.map(s => (
+                    <option key={s.nombre} value={s.nombre}>{s.nombre}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
+          {/* ... resto del formulario sin cambios ... */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col">
               <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Asistencia</label>
