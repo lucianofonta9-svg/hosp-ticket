@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { auth, signOut } from "@/auth";
 import BotonNav from './BotonNav'; 
+import EfectorSelector from './EfectorSelector';
 
 export default async function Navbar() {
   const session = await auth();
@@ -8,52 +9,56 @@ export default async function Navbar() {
   if (!session) return null;
 
   return (
-    <nav  className="print:hidden bg-slate-900 text-gray-200 shadow-md border-b border-slate-700 relative z-50">
+    <nav className="print:hidden bg-slate-900 text-gray-200 shadow-md border-b border-slate-700 relative z-50">
       <div className="max-w-7xl mx-auto px-4 md:px-2">
-        <div className="flex items-center justify-between md:justify-start h-16 w-full">
+        {/* Contenedor principal con 'relative' para poder centrar de forma absoluta */}
+        <div className="flex items-center justify-between h-16 w-full relative">
           
           {/* Lado izquierdo: logo */}
-          <div className="md:w-1/3 flex justify-start">
+          <div className="flex justify-start shrink-0">
             <Link href="/nuevo" className="flex items-center gap-1 group shrink-0">
-              <span className="font-bold tracking-tight text-xl">HOSP</span>
+              <span className="font-bold tracking-tight text-xl hidden sm:block">HOSP</span>
               <div className="bg-slate-700 px-1.5 py-1 rounded-lg group-hover:bg-slate-200 group-hover:text-slate-800 transition-colors text-slate-200">
                 <span className="font-bold tracking-tight text-xl">TICKET</span>
               </div>
             </Link>
-          </div>
 
-          {/* Checkbox oculto para controlar el menú móvil con CSS */}
+            
+          </div>
+          <div  className="ml-4"><EfectorSelector /></div>
+          {/* Checkbox oculto para controlar el menú móvil */}
           <input type="checkbox" id="menu-toggle" className="peer hidden" />
 
-          {/* Botón Hamburguesa (Solo visible en móvil) */}
+          {/* Botón Hamburguesa */}
           <label htmlFor="menu-toggle" className="md:hidden flex items-center p-2 cursor-pointer hover:text-white transition-colors">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </label>
 
-          {/* Contenedor del Menú (Oculto en móvil por defecto, colapsable) */}
-          <div className="absolute top-16 left-0 w-full bg-slate-900 border-b border-slate-700 md:border-none p-4 md:p-0 flex-col hidden peer-checked:flex md:static md:w-2/3 md:flex md:flex-row shadow-xl md:shadow-none">
+          {/* Contenedor del Menú */}
+          <div className="absolute top-16 left-0 w-full bg-slate-900 border-b border-slate-700 md:border-none p-4 md:p-0 flex-col hidden peer-checked:flex md:static md:flex md:flex-row md:items-center shadow-xl md:shadow-none">
             
-            {/* Centro: Contenedor de Píldora Oscura */}
-            <div className="md:w-1/2 flex justify-center text-lg mb-6 md:mb-0 font-normal">
+            {/* Centro: Píldora (Centrado matemáticamente en desktop) */}
+            <div className="flex justify-center text-lg mb-6 md:mb-0 font-normal shrink-0 md:absolute md:left-1/2 md:transform md:-translate-x-1/2">
               <div className="whitespace-nowrap flex flex-col md:flex-row items-stretch md:items-center bg-slate-950 p-1.5 text-gray-200 rounded-2xl md:rounded-full border border-slate-800 shadow-inner gap-2 md:gap-1 w-full md:w-auto">
-                
                 <BotonNav href="/" label="Pendientes" />
                 <BotonNav href="/dashboard" label="Dashboard" />
-                
                 <BotonNav href="/historial" label="Historial" />
                 <BotonNav href="/nuevo" label="Nuevo Ticket" />
               </div>
             </div>
 
-            {/* Lado derecho: usuario y logout */}
-            <div className="md:w-1/2 flex flex-col md:flex-row items-center justify-end shrink-0 gap-4 md:gap-0">
-              <div className="text-center md:text-right border-b md:border-b-0 border-slate-800 pb-4 md:pb-0 md:border-r md:pr-4 w-full md:w-auto">
+            {/* Lado derecho: Efector, usuario y logout (Empujado a la derecha) */}
+            <div className="flex flex-col md:flex-row items-center justify-end shrink-0 md:gap-3 md:ml-auto">
+              
+              
+
+              <div className="text-center md:text-right border-b md:border-b-0 border-slate-800 pb-4 md:pb-0 md:border-r md:pr-3 md:pl-2 w-full md:w-auto">
                 <p className="inline-block align-middle px-2 py-1 mb-1 text-[10px] font-bold bg-slate-700 rounded-full text-gray-200 uppercase leading-none">
                   Usuario
                 </p>
-                <p className="text-lg md:text-base text-gray-200 font-bold">{session.user?.name}</p>
+                <p className="text-lg md:text-base text-gray-200 font-bold leading-none">{session.user?.name}</p>
               </div>
 
               <form action={async () => { "use server"; await signOut(); }} className="w-full font-bold md:w-auto">

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { DATOS_SECTORES } from '../../constants/sectores';
 import { UBICACIONES } from '../../constants/ubicaciones'; 
-import { registrarTicket, obtenerTicketPorId, actualizarTicket, obtenerCategorias, crearCategoria } from '../actions';
+import { registrarTicket, obtenerTicketPorId, actualizarTicket, obtenerCategorias, crearCategoria, obtenerUsuarios } from '../actions';
 
 const obtenerFechaHoraLocalActual = () => {
   const d = new Date();
@@ -23,7 +23,7 @@ export default function NuevoTicket() {
   const [fechaHoraCierre, setFechaHoraCierre] = useState(obtenerFechaHoraLocalActual()); 
   const [tieneCierre, setTieneCierre] = useState(false); 
   const [sectorSeleccionado, setSectorSeleccionado] = useState("");
-  const [nombrePueblo, setNombrePueblo] = useState(""); // NUEVO ESTADO
+  const [nombrePueblo, setNombrePueblo] = useState(""); 
   const [categoriaId, setCategoriaId] = useState("");
   const [ubicacionId, setUbicacionId] = useState<number | "">(""); 
   const [usuarioSolicita, setUsuarioSolicita] = useState(""); 
@@ -35,19 +35,21 @@ export default function NuevoTicket() {
   const [urgencia, setUrgencia] = useState<"BAJA" | "MEDIA" | "CRITICA">("BAJA");
   const [tipoAsistencia, setTipoAsistencia] = useState<"PRESENCIAL" | "REMOTA">("PRESENCIAL");
   
+  const [usuarios, setUsuarios] = useState<any[]>([]);
+  const [usuarioActual, setUsuarioActual] = useState("");
+  const [tecnicosAsignados, setTecnicosAsignados] = useState<string[]>([]);
+  
   const [cargando, setCargando] = useState(false);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [nuevaCatNombre, setNuevaCatNombre] = useState("");
   const [mostrandoInputCat, setMostrandoInputCat] = useState(false);
 
-  // Verificamos si la ubicación seleccionada es "Pueblo"
   const esPueblo = ubicacionId !== "" && UBICACIONES.find(u => u.id === ubicacionId)?.nombre.toLowerCase() === "pueblo";
 
   const limpiarFormulario = () => {
     setSectorSeleccionado("");
     setNombrePueblo("");
     setCategoriaId("");
-    setUbicacionId(""); 
     setUsuarioSolicita(""); 
     setDescripcion("");
     setSolucion("");
@@ -57,8 +59,13 @@ export default function NuevoTicket() {
     setDestacado(false);
     setUrgencia("BAJA");
     setTipoAsistencia("PRESENCIAL");
+    setTecnicosAsignados(usuarioActual ? [usuarioActual] : []);
     setFechaHora(obtenerFechaHoraLocalActual());
     setFechaHoraCierre(obtenerFechaHoraLocalActual());
+    
+    const efectorGuardado = localStorage.getItem("efectorDefault");
+    if (efectorGuardado) manejarCambioUbicacion(efectorGuardado);
+    else setUbicacionId("");
   };
 
   const sectoresFiltrados = useMemo(() => {
@@ -71,7 +78,35 @@ export default function NuevoTicket() {
 
   useEffect(() => {
     obtenerCategorias().then(setCategorias);
-  }, []);
+    obtenerUsuarios().then((res: any) => {
+      if (res) {
+        const actual = res.usuarioActual || "";
+        let listaUsuarios = res.usuarios || [];
+
+        // Ordenamos para que el usuario logueado quede siempre en la primera posición
+        listaUsuarios.sort((a: any, b: any) => {
+          if (a.nombre === actual) return -1;
+          if (b.nombre === actual) return 1;
+          return 0; // El resto mantiene su orden alfabético original
+        });
+
+        setUsuarios(listaUsuarios);
+        setUsuarioActual(actual);
+        
+        // Si es un ticket nuevo, preseleccionamos al usuario actual
+        if (!editId && actual) {
+          setTecnicosAsignados([actual]);
+        }
+      }
+    });
+
+    if (!editId) {
+      const efectorGuardado = localStorage.getItem("efectorDefault");
+      if (efectorGuardado) {
+        manejarCambioUbicacion(efectorGuardado);
+      }
+    }
+  }, [editId]);
 
   useEffect(() => {
     if (editId) {
@@ -89,6 +124,7 @@ export default function NuevoTicket() {
           setDestacado(ticket.destacado || false);
           setUrgencia(ticket.urgencia || "BAJA");
           setTipoAsistencia(ticket.tipoAsistencia || "PRESENCIAL");
+          setTecnicosAsignados(ticket.tecnicosAsignados || []);
 
           if (ticket.fechaCreacion) {
             const d = new Date(ticket.fechaCreacion);
@@ -105,8 +141,6 @@ export default function NuevoTicket() {
         }
         setCargando(false);
       });
-    } else {
-      limpiarFormulario();
     }
   }, [editId]);
 
@@ -118,7 +152,7 @@ export default function NuevoTicket() {
       const isPuebloActual = UBICACIONES.find(u => u.id === nuevaUbicacionId)?.nombre.toLowerCase() === "pueblo";
       
       if (isPuebloActual) {
-        setSectorSeleccionado(""); // Limpiamos sector si es pueblo
+        setSectorSeleccionado(""); 
       } else {
         const sectoresDeUbicacion = DATOS_SECTORES.filter(s => s.ubicacionId === nuevaUbicacionId);
         if (sectoresDeUbicacion.length === 1) {
@@ -145,8 +179,15 @@ export default function NuevoTicket() {
     }
   };
 
+  const toggleTecnico = (nombre: string) => {
+    setTecnicosAsignados(prev => 
+      prev.includes(nombre) 
+        ? prev.filter(t => t !== nombre) 
+        : [...prev, nombre]
+    );
+  };
+
   const manejarGuardado = async () => {
-    // Validaciones diferenciadas
     if (ubicacionId === "" || !categoriaId) {
         return alert("Por favor, complete todos los campos obligatorios.");
     }
@@ -180,7 +221,8 @@ export default function NuevoTicket() {
       urgencia,
       tipoAsistencia,
       esGuardia,
-      destacado 
+      destacado,
+      tecnicosAsignados 
     };
 
     const res = editId ? await actualizarTicket(Number(editId), datos) : await registrarTicket(datos);
@@ -246,7 +288,6 @@ export default function NuevoTicket() {
               </select>
             </div>
 
-            {/* RENDERIZADO CONDICIONAL DE SECTOR / PUEBLO */}
             {esPueblo ? (
               <div className="animate-in fade-in slide-in-from-top-2 duration-200">
                 <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Nombre del Pueblo</label>
@@ -278,7 +319,50 @@ export default function NuevoTicket() {
             )}
           </div>
 
-          {/* ... resto del formulario sin cambios ... */}
+          {/* SECCIÓN DE TÉCNICOS ASIGNADOS CON BLOQUEO DEL USUARIO ACTUAL */}
+          <div className="col-span-1 md:col-span-2">
+            <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Compañeros / Técnicos Asignados (Opcional)</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {usuarios.map(u => {
+                const esUsuarioActual = u.nombre === usuarioActual;
+                const estaSeleccionado = tecnicosAsignados.includes(u.nombre) || esUsuarioActual;
+
+                return (
+                  <label 
+                    key={u.id} 
+                    className={`flex items-center gap-3 p-3 border rounded-xl transition-all select-none text-sm font-bold ${
+                      estaSeleccionado 
+                        ? 'bg-blue-50 border-blue-400 text-blue-900 shadow-sm' 
+                        : 'bg-white border-gray-300 text-slate-600 hover:bg-slate-50'
+                    } ${esUsuarioActual ? 'cursor-not-allowed opacity-80' : 'cursor-pointer'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      className="hidden"
+                      checked={estaSeleccionado}
+                      disabled={esUsuarioActual}
+                      onChange={() => {
+                        if (!esUsuarioActual) toggleTecnico(u.nombre);
+                      }}
+                    />
+                    <div className={`w-5 h-5 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                      estaSeleccionado 
+                        ? (esUsuarioActual ? 'bg-blue-400 border-blue-400' : 'bg-blue-600 border-blue-600') 
+                        : 'bg-white border-gray-300'
+                    }`}>
+                      {estaSeleccionado && (
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="truncate">{u.nombre} {esUsuarioActual}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col">
               <label className="block text-xs font-bold uppercase text-slate-600 mb-2 tracking-tight">Asistencia</label>

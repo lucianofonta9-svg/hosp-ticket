@@ -9,19 +9,20 @@ datasource db {
 
 model Ticket {
   id              Int            @id @default(autoincrement())
-  sector          String?        // <--- CAMBIO 1: Ahora es opcional
+  sector          String?        
   interno         String?
   categoryId      Int
   category        Category       @relation(fields: [categoryId], references: [id])
   ubicacion       String   
-  nombrePueblo    String?        // <--- CAMBIO 2: Campo nuevo opcional
+  nombrePueblo    String?        
   usuarioSolicita String 
   descripcion     String
   esGuardia       Boolean        @default(false)
   estado          Estado         @default(EN_PROCESO) 
   fechaCreacion   DateTime       @default(now())
   fechaCierre     DateTime?
-  tecnico         String
+  tecnico         String         
+  tecnicosAsignados String[]     @default([]) 
   tecnicoCierre   String?
   logs            TicketLog[]
   urgencia        Urgencia       @default(BAJA)
@@ -35,7 +36,7 @@ model TicketLog {
   ticketId Int
   ticket   Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   estado   Estado   
-  tecnico  String   
+  tecnico  String   // Esto queda igual porque cada acción/log la ejecuta un solo técnico a la vez
   fecha    DateTime @default(now())
 }
 
@@ -50,7 +51,7 @@ model User {
   username  String   @unique
   password  String
   nombre    String
-  rol       String   @default("TECNICO") // "ADMIN" o "TECNICO"
+  rol       String   @default("TECNICO")
   createdAt DateTime @default(now())
 }
 

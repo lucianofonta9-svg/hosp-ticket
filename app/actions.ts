@@ -30,6 +30,7 @@ export async function registrarTicket(datos: {
   destacado: boolean;                 
   urgencia: "BAJA" | "MEDIA" | "CRITICA";
   tipoAsistencia: "PRESENCIAL" | "REMOTA";
+  tecnicosAsignados?: string[]; 
 }) {
   try {
     const session = await auth();
@@ -45,7 +46,6 @@ export async function registrarTicket(datos: {
       ? (datos.fechaCierreManual ? parseFechaArgentina(datos.fechaCierreManual) : new Date())
       : null;
 
-    // Si sector es null (porque es un pueblo), sectorEncontrado será undefined, lo cual es seguro.
     const sectorEncontrado = DATOS_SECTORES.find(
       s => s.nombre === datos.sector && s.ubicacionId === Number(datos.ubicacion)
     );
@@ -69,6 +69,8 @@ export async function registrarTicket(datos: {
         fechaCreacion: fechaCreacion,    
         fechaCierre: fechaCierre,                                      
         tecnico: nombreTecnico,
+        // CAMBIO: Asegura que el creador siempre esté en el array, sin duplicarse
+        tecnicosAsignados: Array.from(new Set([...(datos.tecnicosAsignados || []), nombreTecnico])), 
         tecnicoCierre: datos.esResolucionInmediata ? nombreTecnico : null,
         logs: {
           create: {
@@ -226,6 +228,7 @@ export async function actualizarTicket(id: number, data: any) {
       destacado: data.destacado,         
       urgencia: data.urgencia,          
       tipoAsistencia: data.tipoAsistencia,
+      tecnicosAsignados: data.tecnicosAsignados || [], // <--- CAMBIO: Actualización de array
       logs: {
         create: {
           estado: "EDITADO",
@@ -573,5 +576,22 @@ export async function obtenerDatosDashboard(fechaDesde?: string, fechaHasta?: st
   } catch (error) {
     console.error("Error al obtener datos del dashboard:", error);
     return { error: true };
+  }
+}
+
+export async function obtenerUsuarios() {
+  try {
+    const session = await auth();
+    const nombreActual = session?.user?.name || "";
+
+    const usuarios = await prisma.user.findMany({
+      select: { id: true, nombre: true, username: true },
+      orderBy: { nombre: 'asc' }
+    });
+
+    return { usuarios, usuarioActual: nombreActual };
+  } catch (error) {
+    console.error("Error al obtener usuarios:", error);
+    return { usuarios: [], usuarioActual: "" };
   }
 }
