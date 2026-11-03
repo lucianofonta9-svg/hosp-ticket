@@ -116,13 +116,19 @@ export default function HistorialPage() {
   const sectoresUnicos = Array.from(new Set(tickets.map(t => t.sector))).sort();
 
   // Filtrado de todos los datos
+ // Filtrado de todos los datos
   const ticketsFiltrados = tickets.filter(t => {
+    const busqueda = filtroGeneral.toLowerCase();
+    
+    // Agregamos comprobaciones (ej: t.sector && ...) para evitar crasheos si un campo es null
     const coincideGeneral = filtroGeneral === "" || 
-      t.sector.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
-      t.descripcion.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
-      (t.solucion && t.solucion.toLowerCase().includes(filtroGeneral.toLowerCase())) ||
-      t.tecnico.toLowerCase().includes(filtroGeneral.toLowerCase()) ||
-      (t.usuarioSolicita && t.usuarioSolicita.toLowerCase().includes(filtroGeneral.toLowerCase()));
+      (t.sector && t.sector.toLowerCase().includes(busqueda)) ||
+      (t.descripcion && t.descripcion.toLowerCase().includes(busqueda)) ||
+      (t.solucion && t.solucion.toLowerCase().includes(busqueda)) ||
+      (t.tecnico && t.tecnico.toLowerCase().includes(busqueda)) ||
+      (t.usuarioSolicita && t.usuarioSolicita.toLowerCase().includes(busqueda)) ||
+      (t.nombrePueblo && t.nombrePueblo.toLowerCase().includes(busqueda)) ||
+      (t.tecnicosAsignados && t.tecnicosAsignados.some((tec: string) => tec.toLowerCase().includes(busqueda)));
 
     const coincideUbicacion = filtroUbicacion === "" || t.ubicacion === filtroUbicacion;
     const coincideCategoria = filtroCategoria === "" || (t.category && t.category.id.toString() === filtroCategoria);
