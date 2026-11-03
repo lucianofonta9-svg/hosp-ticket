@@ -458,6 +458,7 @@ export async function obtenerDatosDashboard(fechaDesde?: string, fechaHasta?: st
         fechaCreacion: true,
         fechaCierre: true,
         tecnico: true,
+        tecnicosAsignados: true, // <--- CAMBIO: Incluimos el array de asignados
         estado: true,
         tipoAsistencia: true,
         esGuardia: true,
@@ -483,38 +484,48 @@ export async function obtenerDatosDashboard(fechaDesde?: string, fechaHasta?: st
       totalTickets++;
       if (t.esGuardia) ticketsGuardia++;
 
-      let nombreTecnico = "Sin Técnico";
-      if (t.tecnico && typeof t.tecnico === 'string' && t.tecnico.trim() !== "") {
-          nombreTecnico = t.tecnico.trim();
+      // CAMBIO: Si hay array de técnicos asignados lo usamos, si no usamos el técnico principal (soporte legacy)
+      let listaTecnicos: string[] = [];
+      if (Array.isArray(t.tecnicosAsignados) && t.tecnicosAsignados.length > 0) {
+        listaTecnicos = t.tecnicosAsignados.map((tec: string) => tec.trim()).filter(Boolean);
+      } else if (t.tecnico && typeof t.tecnico === 'string' && t.tecnico.trim() !== "") {
+        listaTecnicos = [t.tecnico.trim()];
+      } else {
+        listaTecnicos = ["Sin Técnico"];
       }
-      
-      if (!conteoPorTecnico[nombreTecnico]) {
-        conteoPorTecnico[nombreTecnico] = { creados: 0, cerrados: 0 };
-      }
-      conteoPorTecnico[nombreTecnico].creados += 1;
 
-      if (t.fechaCierre || t.estado === "FINALIZADO" || t.estado === "ELIMINADO" || t.estado === "RESUELTO") {
-        conteoPorTecnico[nombreTecnico].cerrados += 1;
-        
-        if (t.fechaCreacion && t.fechaCierre) {
-           const inicio = new Date(t.fechaCreacion).getTime();
-           const fin = new Date(t.fechaCierre).getTime();
-           if (!isNaN(inicio) && !isNaN(fin) && fin >= inicio) {
-               tiempoTotalMs += (fin - inicio);
-               ticketsResueltos += 1;
-           }
+      // Sumamos la métrica a CADA técnico asignado en el ticket
+      listaTecnicos.forEach((nombreTecnico) => {
+        if (!conteoPorTecnico[nombreTecnico]) {
+          conteoPorTecnico[nombreTecnico] = { creados: 0, cerrados: 0 };
+        }
+        conteoPorTecnico[nombreTecnico].creados += 1;
+
+        if (t.fechaCierre || t.estado === "FINALIZADO" || t.estado === "ELIMINADO" || t.estado === "RESUELTO") {
+          conteoPorTecnico[nombreTecnico].cerrados += 1;
+        }
+      });
+
+      if (t.fechaCreacion && (t.fechaCierre || t.estado === "FINALIZADO" || t.estado === "ELIMINADO" || t.estado === "RESUELTO")) {
+        if (t.fechaCierre) {
+          const inicio = new Date(t.fechaCreacion).getTime();
+          const fin = new Date(t.fechaCierre).getTime();
+          if (!isNaN(inicio) && !isNaN(fin) && fin >= inicio) {
+            tiempoTotalMs += (fin - inicio);
+            ticketsResueltos += 1;
+          }
         }
       }
 
       if (t.fechaCreacion) {
         const fecha = new Date(t.fechaCreacion);
         if (!isNaN(fecha.getTime())) {
-            const year = fecha.getFullYear();
-            const month = String(fecha.getMonth() + 1).padStart(2, '0');
-            const monthKey = `${year}-${month}`; 
-            
-            if (!conteoPorMes[monthKey]) conteoPorMes[monthKey] = 0;
-            conteoPorMes[monthKey] += 1;
+          const year = fecha.getFullYear();
+          const month = String(fecha.getMonth() + 1).padStart(2, '0');
+          const monthKey = `${year}-${month}`; 
+          
+          if (!conteoPorMes[monthKey]) conteoPorMes[monthKey] = 0;
+          conteoPorMes[monthKey] += 1;
         }
       }
 
@@ -547,9 +558,9 @@ export async function obtenerDatosDashboard(fechaDesde?: string, fechaHasta?: st
     const graficoMeses = Object.entries(conteoPorMes)
       .sort(([a], [b]) => a.localeCompare(b)) 
       .map(([key, cantidad]) => {
-         const [year, month] = key.split('-');
-         const nombreMes = nombresMeses[parseInt(month, 10) - 1];
-         return { mes: `${nombreMes} ${year.slice(2)}`, cantidad };
+          const [year, month] = key.split('-');
+          const nombreMes = nombresMeses[parseInt(month, 10) - 1];
+          return { mes: `${nombreMes} ${year.slice(2)}`, cantidad };
       });
     if (graficoMeses.length === 1) graficoMeses.unshift({ mes: "Inicio", cantidad: 0 });
 

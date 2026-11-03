@@ -101,6 +101,8 @@ export const DATOS_SECTORES = [
   { nombre: "Hall 1º piso", interno: ["-"], ubicacionId: 1 },
   { nombre: "Hall 2º piso", interno: ["-"], ubicacionId: 1 },
   { nombre: "Infectología", interno: [""], ubicacionId: 1 },
+  { nombre: "UCMA", interno: [""], ubicacionId: 1 },
+
 
   // ANEXO
 
@@ -147,6 +149,8 @@ export const DATOS_SECTORES = [
   { nombre: "Otorrino", interno: ["14378"], ubicacionId: 2 },
   { nombre: "Certificados-Discapacidad", interno: ["14379"], ubicacionId: 2 },
   { nombre: "Consultorio", interno: ["-"], ubicacionId: 2 },
+  { nombre: "Salud Laboral", interno: [""], ubicacionId: 2 },
+  { nombre: "Auditoría Médica", interno: [""], ubicacionId: 2 },
   
 
   // CENTROS DE SALUD

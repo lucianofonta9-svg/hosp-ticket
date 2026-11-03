@@ -537,7 +537,18 @@ export default function HistorialPage() {
                         <td className="p-3 align-top font-bold">{t.sector}</td>
                         <td className="p-3 align-top font-medium">{t.interno || "-"}</td>
                         <td className="p-3 align-top">{t.usuarioSolicita}</td>
-                        <td className="p-3 align-top">{t.tecnico}</td>
+                        
+                        <td className="p-3 align-top">
+                          <div className="flex flex-col gap-1">
+                            {t.tecnicosAsignados && t.tecnicosAsignados.length > 0
+                              ? t.tecnicosAsignados.map((tecnico: string, index: number) => (
+                                  <span key={index} className="block whitespace-nowrap">{tecnico}</span>
+                                ))
+                              : <span className="block whitespace-nowrap">{t.tecnico}</span>
+                            }
+                          </div>
+                        </td>
+                        
                         <td className="p-3 align-top">{t.tecnicoCierre || "-"}</td>
                         <td className="p-3 align-top">{t.category?.name || "Gral"}</td>
                         <td className="p-3 align-top">{t.urgencia}</td>

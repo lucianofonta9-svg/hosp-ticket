@@ -273,9 +273,19 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
               Solicitado por: <span className="text-slate-600 font-bold ml-1">{ticket.usuarioSolicita}</span>
             </p>
             
-            <p className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none flex items-center">
-              Creado por: <span className="text-slate-600 font-bold ml-1">{ticket.tecnico}</span>
-            </p>
+           <div className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none flex items-start">
+            <span className="mr-1 mt-0.5 whitespace-nowrap">
+              {ticket.tecnicosAsignados && ticket.tecnicosAsignados.length > 1 ? "Técnicos:" : "Creado por:"}
+            </span>
+            <div className="flex flex-col gap-1 text-slate-600">
+              {ticket.tecnicosAsignados && ticket.tecnicosAsignados.length > 0
+                ? ticket.tecnicosAsignados.map((tecnico, index) => (
+                    <span key={index} className="block">{tecnico}</span>
+                  ))
+                : <span className="block">{ticket.tecnico}</span>
+              }
+            </div>
+          </div>
             
             <p className="text-[10px] font-bold uppercase text-gray-400 tracking-tight leading-none flex items-center">
               Urgencia:
