@@ -278,8 +278,8 @@ export default function TicketCard({ ticket, finalizarAction }: { ticket: any, f
               {ticket.tecnicosAsignados && ticket.tecnicosAsignados.length > 1 ? "Técnicos:" : "Creado por:"}
             </span>
             <div className="flex flex-col gap-1 text-slate-600">
-              {ticket.tecnicosAsignados && ticket.tecnicosAsignados.length > 0
-                ? ticket.tecnicosAsignados.map((tecnico, index) => (
+             {ticket.tecnicosAsignados && ticket.tecnicosAsignados.length > 0
+                ? ticket.tecnicosAsignados.map((tecnico: string, index: number) => (
                     <span key={index} className="block">{tecnico}</span>
                   ))
                 : <span className="block">{ticket.tecnico}</span>
